@@ -17,6 +17,7 @@ import { MarketListComponent } from './components/market-list/market-list.compon
 import { TradeFormComponent } from './components/trade-form/trade-form.component';
 import { OrderHistoryComponent } from './components/order-history/order-history.component';
 import { PriceChartComponent } from './components/price-chart/price-chart.component';
+import { OrderBookComponent } from './components/order-book/order-book.component';
 
 const routes: Routes = [
     { path: '', component: DashboardHomeComponent }
@@ -29,7 +30,8 @@ const routes: Routes = [
         MarketListComponent,
         TradeFormComponent,
         OrderHistoryComponent,
-        PriceChartComponent
+        PriceChartComponent,
+        OrderBookComponent
     ],
     imports: [
         CommonModule,

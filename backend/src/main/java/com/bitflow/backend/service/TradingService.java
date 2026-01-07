@@ -40,38 +40,28 @@ public class TradingService {
             throw new RuntimeException("Price not available for: " + symbol);
         }
 
-        // Determine execution price and status
         Double executionPrice = (category == OrderCategory.LIMIT) ? targetPrice : currentPrice;
         OrderStatus initialStatus = (category == OrderCategory.LIMIT) ? OrderStatus.PENDING : OrderStatus.FILLED;
 
-        // Calculate total cost/value
         Double totalValue = executionPrice * quantity;
-
-        // Lock funds or Execute
         if (type == OrderType.BUY) {
-            // Check USD balance
             Asset usd = getOrCreateAsset(wallet, "USD");
             if (usd.getQuantity() < totalValue) {
                 throw new RuntimeException("Insufficient USD balance");
             }
-            // Deduct USD immediately (Lock funds)
             usd.setQuantity(usd.getQuantity() - totalValue);
 
-            // If MARKET, credit crypto immediately
             if (category == OrderCategory.MARKET) {
                 Asset crypto = getOrCreateAsset(wallet, symbol.toUpperCase());
                 crypto.setQuantity(crypto.getQuantity() + quantity);
             }
         } else {
-            // Sell
             Asset crypto = getOrCreateAsset(wallet, symbol.toUpperCase());
             if (crypto.getQuantity() < quantity) {
                 throw new RuntimeException("Insufficient " + symbol + " balance");
             }
-            // Deduct Crypto immediately (Lock funds)
             crypto.setQuantity(crypto.getQuantity() - quantity);
 
-            // If MARKET, credit USD immediately
             if (category == OrderCategory.MARKET) {
                 Asset usd = getOrCreateAsset(wallet, "USD");
                 usd.setQuantity(usd.getQuantity() + totalValue);
@@ -121,12 +111,9 @@ public class TradingService {
                 .orElseThrow(() -> new RuntimeException("Wallet not found"));
 
         if (order.getType() == OrderType.BUY) {
-            // Funds (USD) were locked at placement.
-            // Credit Crypto.
             Asset crypto = getOrCreateAsset(wallet, order.getSymbol().toUpperCase());
             crypto.setQuantity(crypto.getQuantity() + order.getQuantity());
 
-            // Refund difference if bought cheaper
             Double lockedAmount = order.getTargetPrice() * order.getQuantity();
             Double actualCost = executionPrice * order.getQuantity();
 
@@ -136,9 +123,6 @@ public class TradingService {
             }
 
         } else {
-            // SELL LIMIT
-            // Crypto was locked at placement.
-            // Credit USD.
             Asset usd = getOrCreateAsset(wallet, "USD");
             Double totalValue = executionPrice * order.getQuantity();
             usd.setQuantity(usd.getQuantity() + totalValue);

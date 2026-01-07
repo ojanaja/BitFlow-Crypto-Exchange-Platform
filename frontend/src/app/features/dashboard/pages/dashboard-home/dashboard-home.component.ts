@@ -28,6 +28,11 @@ import { PortfolioSummaryComponent } from '../../components/portfolio-summary/po
         <div class="col-span-12 lg:col-span-4 space-y-6">
           <app-portfolio-summary #portfolio></app-portfolio-summary>
           <app-trade-form (orderPlaced)="refreshWallet()"></app-trade-form>
+          
+          <!-- Order Book -->
+          <div class="h-[600px]">
+            <app-order-book></app-order-book>
+          </div>
         </div>
         
         <!-- Main Content (Right - 8 cols) -->

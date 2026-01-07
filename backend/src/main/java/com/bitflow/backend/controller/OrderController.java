@@ -26,7 +26,6 @@ public class OrderController {
     public ResponseEntity<?> placeOrder(@AuthenticationPrincipal UserDetailsImpl userDetails,
             @RequestBody OrderRequest orderRequest) {
         try {
-            // Default to MARKET if category is null
             com.bitflow.backend.model.OrderCategory category = orderRequest.getCategory() != null
                     ? orderRequest.getCategory()
                     : com.bitflow.backend.model.OrderCategory.MARKET;

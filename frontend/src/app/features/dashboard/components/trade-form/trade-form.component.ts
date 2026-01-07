@@ -119,7 +119,6 @@ export class TradeFormComponent {
       targetPrice: [null]
     });
 
-    // Add custom validator for Limit Orders
     this.tradeForm.get('category')?.valueChanges.subscribe(val => {
       if (val === 'LIMIT') {
         this.tradeForm.get('targetPrice')?.setValidators([Validators.required, Validators.min(0.01)]);

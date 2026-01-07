@@ -79,21 +79,20 @@ export class PriceChartComponent implements AfterViewInit, OnDestroy {
     private initChart() {
         if (!this.chartContainer) return;
 
-        // Dark Theme Colors
         const chartOptions = {
             layout: {
-                background: { color: '#0f172a' }, // slate-900
-                textColor: '#94a3b8', // slate-400
+                background: { color: '#0f172a' },
+                textColor: '#94a3b8',
             },
             grid: {
-                vertLines: { color: '#1e293b' }, // slate-800
+                vertLines: { color: '#1e293b' },
                 horzLines: { color: '#1e293b' },
             },
             crosshair: {
-                mode: 1, // CrosshairMode.Normal
+                mode: 1,
             },
             rightPriceScale: {
-                borderColor: '#334155', // slate-700
+                borderColor: '#334155',
             },
             timeScale: {
                 borderColor: '#334155',
@@ -104,8 +103,8 @@ export class PriceChartComponent implements AfterViewInit, OnDestroy {
         this.chart = createChart(this.chartContainer.nativeElement, chartOptions);
 
         this.stickSeries = this.chart.addSeries(CandlestickSeries, {
-            upColor: '#10b981', // emerald-500
-            downColor: '#f43f5e', // rose-500
+            upColor: '#10b981',
+            downColor: '#f43f5e',
             borderUpColor: '#10b981',
             borderDownColor: '#f43f5e',
             wickUpColor: '#10b981',
@@ -115,7 +114,6 @@ export class PriceChartComponent implements AfterViewInit, OnDestroy {
         const data = this.marketService.generateHistoricalData();
         this.stickSeries.setData(data);
 
-        // Responsive Resize
         new ResizeObserver(entries => {
             if (entries.length === 0 || entries[0].target !== this.chartContainer.nativeElement) { return; }
             const newRect = entries[0].contentRect;

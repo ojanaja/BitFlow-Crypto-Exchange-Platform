@@ -34,9 +34,9 @@ public class Order {
     private OrderStatus status;
 
     @Enumerated(EnumType.STRING)
-    private OrderCategory category; // MARKET, LIMIT
+    private OrderCategory category;
 
-    private Double targetPrice; // For Limit Orders
+    private Double targetPrice;
 
     public Order(User user, String symbol, OrderType type, OrderCategory category, Double quantity, Double price,
             Double targetPrice, LocalDateTime timestamp, OrderStatus status) {

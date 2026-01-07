@@ -24,7 +24,7 @@ public class MatchingEngineService {
     @Autowired
     private TradingService tradingService;
 
-    @Scheduled(fixedRate = 3000) // Run every 3 seconds
+    @Scheduled(fixedRate = 3000)
     public void matchOrders() {
         List<Order> pendingOrders = orderRepository.findByStatus(OrderStatus.PENDING);
         if (pendingOrders.isEmpty()) {
@@ -41,12 +41,10 @@ public class MatchingEngineService {
             boolean shouldExecute = false;
 
             if (order.getType() == OrderType.BUY) {
-                // Buy if market price <= target price
                 if (currentPrice <= order.getTargetPrice()) {
                     shouldExecute = true;
                 }
             } else {
-                // Sell if market price >= target price
                 if (currentPrice >= order.getTargetPrice()) {
                     shouldExecute = true;
                 }

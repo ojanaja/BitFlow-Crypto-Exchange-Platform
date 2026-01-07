@@ -15,6 +15,9 @@ export class MarketService {
     private pricesSubject = new BehaviorSubject<any>({});
     public prices$ = this.pricesSubject.asObservable();
 
+    private orderBookSubject = new BehaviorSubject<any>(null);
+    public orderBook$ = this.orderBookSubject.asObservable();
+
     constructor(private http: HttpClient) {
         this.stompClient = new Client({
             webSocketFactory: () => new SockJS(WS_URL),
@@ -31,6 +34,12 @@ export class MarketService {
             this.stompClient.subscribe('/topic/prices', (message: Message) => {
                 if (message.body) {
                     this.pricesSubject.next(JSON.parse(message.body));
+                }
+            });
+
+            this.stompClient.subscribe('/topic/orderbook', (message: Message) => {
+                if (message.body) {
+                    this.orderBookSubject.next(JSON.parse(message.body));
                 }
             });
         };
@@ -55,11 +64,11 @@ export class MarketService {
 
     generateHistoricalData(): any[] {
         const data = [];
-        let time = new Date().getTime() / 1000 - (24 * 60 * 60 * 30); // 30 days ago
+        let time = new Date().getTime() / 1000 - (24 * 60 * 60 * 30);
         let price = 45000;
 
-        for (let i = 0; i < 720; i++) { // 30 days * 24h
-            const volatility = 0.02; // 2%
+        for (let i = 0; i < 720; i++) {
+            const volatility = 0.02;
             const change = (Math.random() - 0.5) * price * volatility;
             const open = price;
             const close = price + change;
@@ -67,7 +76,7 @@ export class MarketService {
             const low = Math.min(open, close) - Math.random() * price * 0.01;
 
             data.push({
-                time: time + (i * 3600), // Hourly
+                time: time + (i * 3600),
                 open,
                 high,
                 low,
