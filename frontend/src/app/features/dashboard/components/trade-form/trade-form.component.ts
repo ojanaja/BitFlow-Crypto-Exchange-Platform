@@ -7,7 +7,25 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   selector: 'app-trade-form',
   template: `
     <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-lg">
-      <h3 class="font-bold text-white text-lg mb-6">Execution</h3>
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="font-bold text-white text-lg">Execution</h3>
+        
+        <!-- Market / Limit Toggle -->
+        <div class="flex bg-slate-950 rounded-lg p-1 border border-slate-800">
+             <button type="button" (click)="setCategory('MARKET')"
+                [class.bg-slate-800]="tradeForm.get('category')?.value === 'MARKET'"
+                [class.text-white]="tradeForm.get('category')?.value === 'MARKET'"
+                class="px-3 py-1 text-xs font-bold rounded text-slate-500 transition-colors">
+                Market
+             </button>
+             <button type="button" (click)="setCategory('LIMIT')"
+                [class.bg-slate-800]="tradeForm.get('category')?.value === 'LIMIT'"
+                [class.text-white]="tradeForm.get('category')?.value === 'LIMIT'"
+                class="px-3 py-1 text-xs font-bold rounded text-slate-500 transition-colors">
+                Limit
+             </button>
+        </div>
+      </div>
       
       <form [formGroup]="tradeForm" (ngSubmit)="onSubmit()" class="space-y-4">
         
@@ -40,6 +58,18 @@ import { MatSnackBar } from '@angular/material/snack-bar';
                         <span class="text-slate-800 font-bold">{{ coin | titlecase }}</span>
                     </mat-option>
                 </mat-autocomplete>
+            </div>
+        </div>
+        
+        <!-- Target Price Input (LIMIT only) -->
+        <div class="space-y-1" *ngIf="tradeForm.get('category')?.value === 'LIMIT'">
+            <label class="text-xs font-bold text-slate-500 uppercase">Target Price</label>
+            <div class="relative">
+                <input type="number" formControlName="targetPrice" min="0.01" placeholder="0.00"
+                    class="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-white font-mono font-bold focus:outline-none focus:border-violet-500 transition-colors">
+                <div class="absolute right-4 top-3 text-slate-500 text-xs font-bold pointer-events-none">
+                    USD
+                </div>
             </div>
         </div>
 
@@ -84,7 +114,19 @@ export class TradeFormComponent {
     this.tradeForm = this.fb.group({
       symbol: ['bitcoin', Validators.required],
       type: ['BUY', Validators.required],
-      quantity: [null, [Validators.required, Validators.min(0.000001)]]
+      category: ['MARKET', Validators.required],
+      quantity: [null, [Validators.required, Validators.min(0.000001)]],
+      targetPrice: [null]
+    });
+
+    // Add custom validator for Limit Orders
+    this.tradeForm.get('category')?.valueChanges.subscribe(val => {
+      if (val === 'LIMIT') {
+        this.tradeForm.get('targetPrice')?.setValidators([Validators.required, Validators.min(0.01)]);
+      } else {
+        this.tradeForm.get('targetPrice')?.clearValidators();
+      }
+      this.tradeForm.get('targetPrice')?.updateValueAndValidity();
     });
   }
 
@@ -92,14 +134,20 @@ export class TradeFormComponent {
     this.tradeForm.patchValue({ type });
   }
 
+  setCategory(category: 'MARKET' | 'LIMIT') {
+    this.tradeForm.patchValue({ category });
+  }
+
   onSubmit() {
     if (this.tradeForm.valid) {
       this.loading = true;
       this.orderService.placeOrder(this.tradeForm.value).subscribe({
         next: () => {
-          this.snackBar.open('Order executed successfully!', 'Close', { duration: 3000 });
+          const type = this.tradeForm.get('category')?.value === 'LIMIT' ? 'Limit Order' : 'Market Order';
+          this.snackBar.open(`${type} placed successfully!`, 'Close', { duration: 3000 });
           this.loading = false;
           this.tradeForm.get('quantity')?.reset();
+          this.tradeForm.get('targetPrice')?.reset();
           this.orderPlaced.emit();
         },
         error: (err) => {

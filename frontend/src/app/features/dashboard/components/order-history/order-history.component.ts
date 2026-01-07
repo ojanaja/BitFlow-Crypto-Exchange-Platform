@@ -25,6 +25,7 @@ import { OrderService } from '../../../../core/services/order.service';
                 <tr *ngFor="let order of orders" class="hover:bg-slate-800/60 transition-colors">
                 <td class="py-3 px-4 text-slate-400 font-mono text-xs">{{ order.timestamp | date:'MMM d, HH:mm' }}</td>
                 <td class="py-3 px-4 font-bold text-xs" [ngClass]="{'text-emerald-400': order.type === 'BUY', 'text-rose-400': order.type === 'SELL'}">
+                    <span *ngIf="order.category === 'LIMIT'" class="text-[10px] bg-slate-800 px-1 rounded mr-1 text-slate-400">LIMIT</span>
                     {{ order.type }}
                 </td>
                 <td class="py-3 px-4 font-bold text-slate-200">{{ order.symbol | uppercase }}</td>

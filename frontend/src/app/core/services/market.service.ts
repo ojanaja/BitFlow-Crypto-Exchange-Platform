@@ -52,4 +52,30 @@ export class MarketService {
     disconnect() {
         this.stompClient.deactivate();
     }
+
+    generateHistoricalData(): any[] {
+        const data = [];
+        let time = new Date().getTime() / 1000 - (24 * 60 * 60 * 30); // 30 days ago
+        let price = 45000;
+
+        for (let i = 0; i < 720; i++) { // 30 days * 24h
+            const volatility = 0.02; // 2%
+            const change = (Math.random() - 0.5) * price * volatility;
+            const open = price;
+            const close = price + change;
+            const high = Math.max(open, close) + Math.random() * price * 0.01;
+            const low = Math.min(open, close) - Math.random() * price * 0.01;
+
+            data.push({
+                time: time + (i * 3600), // Hourly
+                open,
+                high,
+                low,
+                close
+            });
+
+            price = close;
+        }
+        return data;
+    }
 }

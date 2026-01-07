@@ -26,11 +26,18 @@ public class OrderController {
     public ResponseEntity<?> placeOrder(@AuthenticationPrincipal UserDetailsImpl userDetails,
             @RequestBody OrderRequest orderRequest) {
         try {
-            Order order = tradingService.executeOrder(
+            // Default to MARKET if category is null
+            com.bitflow.backend.model.OrderCategory category = orderRequest.getCategory() != null
+                    ? orderRequest.getCategory()
+                    : com.bitflow.backend.model.OrderCategory.MARKET;
+
+            Order order = tradingService.placeOrder(
                     userDetails.getId(),
                     orderRequest.getSymbol(),
                     orderRequest.getType(),
-                    orderRequest.getQuantity());
+                    category,
+                    orderRequest.getQuantity(),
+                    orderRequest.getTargetPrice());
             return ResponseEntity.ok(order);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());

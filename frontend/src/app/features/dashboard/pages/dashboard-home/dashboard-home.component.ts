@@ -32,6 +32,9 @@ import { PortfolioSummaryComponent } from '../../components/portfolio-summary/po
         
         <!-- Main Content (Right - 8 cols) -->
         <div class="col-span-12 lg:col-span-8 flex flex-col gap-6">
+          <!-- Price Chart -->
+          <app-price-chart></app-price-chart>
+          
           <!-- Market Prices -->
           <app-market-list></app-market-list>
           

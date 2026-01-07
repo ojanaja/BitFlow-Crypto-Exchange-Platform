@@ -33,13 +33,20 @@ public class Order {
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
-    public Order(User user, String symbol, OrderType type, Double quantity, Double price, LocalDateTime timestamp,
-            OrderStatus status) {
+    @Enumerated(EnumType.STRING)
+    private OrderCategory category; // MARKET, LIMIT
+
+    private Double targetPrice; // For Limit Orders
+
+    public Order(User user, String symbol, OrderType type, OrderCategory category, Double quantity, Double price,
+            Double targetPrice, LocalDateTime timestamp, OrderStatus status) {
         this.user = user;
         this.symbol = symbol;
         this.type = type;
+        this.category = category;
         this.quantity = quantity;
         this.price = price;
+        this.targetPrice = targetPrice;
         this.timestamp = timestamp;
         this.status = status;
     }
