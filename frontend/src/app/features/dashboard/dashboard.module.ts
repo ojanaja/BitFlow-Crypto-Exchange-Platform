@@ -10,6 +10,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatDialogModule } from '@angular/material/dialog';
+import { FormsModule } from '@angular/forms';
 
 import { DashboardHomeComponent } from './pages/dashboard-home/dashboard-home.component';
 import { PortfolioSummaryComponent } from './components/portfolio-summary/portfolio-summary.component';
@@ -18,6 +20,7 @@ import { TradeFormComponent } from './components/trade-form/trade-form.component
 import { OrderHistoryComponent } from './components/order-history/order-history.component';
 import { PriceChartComponent } from './components/price-chart/price-chart.component';
 import { OrderBookComponent } from './components/order-book/order-book.component';
+import { DepositDialogComponent } from './components/deposit-dialog/deposit-dialog.component';
 
 const routes: Routes = [
     { path: '', component: DashboardHomeComponent }
@@ -31,11 +34,13 @@ const routes: Routes = [
         TradeFormComponent,
         OrderHistoryComponent,
         PriceChartComponent,
-        OrderBookComponent
+        OrderBookComponent,
+        DepositDialogComponent
     ],
     imports: [
         CommonModule,
         ReactiveFormsModule,
+        FormsModule,
         RouterModule.forChild(routes),
         MatCardModule,
         MatButtonModule,
@@ -43,7 +48,8 @@ const routes: Routes = [
         MatFormFieldModule,
         MatSelectModule,
         MatSnackBarModule,
-        MatAutocompleteModule
+        MatAutocompleteModule,
+        MatDialogModule
     ]
 })
 export class DashboardModule { }

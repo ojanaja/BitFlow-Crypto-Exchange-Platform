@@ -1,6 +1,8 @@
 import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { MarketService } from '../../../../core/services/market.service';
 import { PortfolioSummaryComponent } from '../../components/portfolio-summary/portfolio-summary.component';
+import { DepositDialogComponent } from '../../components/deposit-dialog/deposit-dialog.component';
 
 @Component({
   selector: 'app-dashboard-home',
@@ -14,7 +16,7 @@ import { PortfolioSummaryComponent } from '../../components/portfolio-summary/po
             <p class="text-slate-400 text-sm mt-1">Real-time market insights and portfolio management</p>
         </div>
         <div class="flex gap-3">
-             <button mat-flat-button color="primary" class="!bg-violet-600 !text-white !rounded-lg">
+             <button mat-flat-button color="primary" class="!bg-violet-600 !text-white !rounded-lg" (click)="openDepositDialog()">
                 <span class="font-medium">Deposit</span>
              </button>
              <button mat-stroked-button class="!border-slate-700 !text-slate-300 !rounded-lg">
@@ -53,7 +55,10 @@ import { PortfolioSummaryComponent } from '../../components/portfolio-summary/po
 export class DashboardHomeComponent implements OnInit, OnDestroy {
   @ViewChild('portfolio') portfolioSummary!: PortfolioSummaryComponent;
 
-  constructor(private marketService: MarketService) { }
+  constructor(
+    private marketService: MarketService,
+    private dialog: MatDialog
+  ) { }
 
   ngOnInit() {
     this.marketService.connect();
@@ -67,5 +72,18 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
     if (this.portfolioSummary) {
       this.portfolioSummary.refreshWallet();
     }
+  }
+
+  openDepositDialog() {
+    const dialogRef = this.dialog.open(DepositDialogComponent, {
+      width: '400px',
+      panelClass: 'bg-transparent' // Tailwind handles styling
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.refreshWallet();
+      }
+    });
   }
 }

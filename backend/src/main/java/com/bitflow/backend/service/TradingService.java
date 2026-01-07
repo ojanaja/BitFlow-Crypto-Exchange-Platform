@@ -27,6 +27,19 @@ public class TradingService {
     private MarketDataService marketDataService;
 
     @Transactional
+    public Wallet depositFunds(Long userId, Double amount) {
+        if (amount <= 0) {
+            throw new RuntimeException("Deposit amount must be positive");
+        }
+
+        Wallet wallet = getWallet(userId);
+        Asset usd = getOrCreateAsset(wallet, "USD");
+        usd.setQuantity(usd.getQuantity() + amount);
+
+        return walletRepository.save(wallet);
+    }
+
+    @Transactional
     public Order placeOrder(Long userId, String symbol, OrderType type, OrderCategory category, Double quantity,
             Double targetPrice) {
         User user = userRepository.findById(userId)
