@@ -19,19 +19,19 @@ public class Order {
     @JoinColumn(name = "user_id")
     private User user;
 
-    private String symbol; // e.g., "BTC"
+    private String symbol;
 
     @Enumerated(EnumType.STRING)
-    private OrderType type; // BUY or SELL
+    private OrderType type;
 
     private Double quantity;
 
-    private Double price; // Price at execution
+    private Double price;
 
     private LocalDateTime timestamp;
 
     @Enumerated(EnumType.STRING)
-    private OrderStatus status; // FILLED, REJECTED
+    private OrderStatus status;
 
     public Order(User user, String symbol, OrderType type, Double quantity, Double price, LocalDateTime timestamp,
             OrderStatus status) {

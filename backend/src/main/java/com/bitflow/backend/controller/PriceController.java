@@ -26,7 +26,6 @@ public class PriceController {
         return ResponseEntity.ok(marketDataService.getLatestPrices());
     }
 
-    // Push updates every 5 seconds
     @Scheduled(fixedRate = 5000)
     public void broadcastPrices() {
         Map<String, Double> prices = marketDataService.getLatestPrices();

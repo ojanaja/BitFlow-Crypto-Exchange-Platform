@@ -90,7 +90,6 @@ public class TradingService {
 
     private Wallet createInitialWallet(User user) {
         Wallet wallet = new Wallet(user);
-        // Initial 50k USD for testing
         wallet.getAssets().add(new Asset("USD", 50000.0, wallet));
         return walletRepository.save(wallet);
     }

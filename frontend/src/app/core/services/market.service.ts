@@ -17,8 +17,7 @@ export class MarketService {
 
     constructor(private http: HttpClient) {
         this.stompClient = new Client({
-            // brokerURL: 'ws://localhost:8080/ws-bitflow', // If using raw WS
-            webSocketFactory: () => new SockJS(WS_URL), // For SockJS fallback
+            webSocketFactory: () => new SockJS(WS_URL),
             debug: (str) => {
                 console.log(str);
             },

@@ -33,6 +33,6 @@ public class User {
         this.username = username;
         this.email = email;
         this.password = password;
-        this.role = "ROLE_USER"; // Default role
+        this.role = "ROLE_USER";
     }
 }

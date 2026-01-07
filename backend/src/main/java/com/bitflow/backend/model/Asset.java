@@ -14,7 +14,7 @@ public class Asset {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String symbol; // e.g., "BTC", "USD"
+    private String symbol;
 
     private Double quantity;
 
