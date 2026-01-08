@@ -31,4 +31,11 @@ public class WalletController {
         Wallet wallet = tradingService.depositFunds(userDetails.getId(), request.getAmount());
         return ResponseEntity.ok(wallet);
     }
+
+    @PostMapping("/withdraw")
+    public ResponseEntity<Wallet> withdraw(@AuthenticationPrincipal UserDetailsImpl userDetails,
+            @RequestBody com.bitflow.backend.dto.WithdrawRequest request) {
+        Wallet wallet = tradingService.withdrawFunds(userDetails.getId(), request.getAmount());
+        return ResponseEntity.ok(wallet);
+    }
 }

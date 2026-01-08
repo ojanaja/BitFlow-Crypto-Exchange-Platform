@@ -1,5 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { WalletService } from '../../../../core/services/wallet.service';
+import { MarketService } from '../../../../core/services/market.service';
+import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-portfolio-summary',
@@ -18,11 +21,10 @@ import { WalletService } from '../../../../core/services/wallet.service';
       <div class="mb-8 relative">
         <div class="text-4xl font-mono font-bold text-white tracking-tight flex items-baseline gap-1">
             <span class="text-emerald-400">$</span>
-            {{ getUsdBalance() | number:'1.2-2' }}
+            {{ totalValue | number:'1.2-2' }}
         </div>
         <div class="text-sm text-emerald-500/80 mt-2 font-medium flex items-center gap-1">
-            <span>+2.4%</span>
-            <span class="text-slate-500 font-normal">vs last month</span>
+            <span>~ {{ totalValueBtc | number:'1.4-4' }} BTC</span>
         </div>
       </div>
 
@@ -37,12 +39,26 @@ import { WalletService } from '../../../../core/services/wallet.service';
                     </div>
                     <div>
                         <div class="font-bold text-slate-200">{{ asset.symbol }}</div>
-                        <div class="text-xs text-slate-500">Crypto Asset</div>
+                        <div class="text-xs text-slate-500">{{ asset.symbol === 'USD' ? 'Fiat Currency' : 'Crypto Asset' }}</div>
                     </div>
                 </div>
-                <div class="text-right">
-                    <div class="font-mono font-bold text-slate-200">{{ asset.quantity | number:'1.2-6' }}</div>
-                    <div class="text-xs text-slate-500">~ $0.00</div>
+                <!-- Right Side -->
+                <div class="flex items-center gap-4">
+                    <div class="text-right">
+                        <div class="font-mono font-bold text-slate-200">{{ asset.quantity | number:'1.2-6' }}</div>
+                        <div class="text-xs text-slate-500">~ {{ getAssetValue(asset) | currency:'USD' }}</div>
+                    </div>
+                    <!-- Trade Action -->
+                    <button *ngIf="asset.symbol !== 'USD'" 
+                        (click)="navigateToTrade(asset.symbol)"
+                        class="p-2 rounded-lg bg-slate-700 hover:bg-violet-600 text-slate-300 hover:text-white transition-colors" matTooltip="Trade {{asset.symbol}}">
+                        <mat-icon class="text-sm !w-4 !h-4 flex items-center justify-center">candlestick_chart</mat-icon>
+                    </button>
+                    <!-- Deposit Action for USD -->
+                    <button *ngIf="asset.symbol === 'USD'" 
+                        class="px-3 py-1 rounded bg-emerald-600/20 text-emerald-400 text-xs font-bold border border-emerald-600/30 cursor-default">
+                        Main
+                    </button>
                 </div>
             </div>
         </div>
@@ -56,24 +72,69 @@ import { WalletService } from '../../../../core/services/wallet.service';
     </div>
   `
 })
-export class PortfolioSummaryComponent implements OnInit {
+export class PortfolioSummaryComponent implements OnInit, OnDestroy {
   wallet: any;
   assets: any[] = [];
+  prices: any = {};
+  totalValue: number = 0;
+  totalValueBtc: number = 0;
 
-  constructor(private walletService: WalletService) { }
+  private subscription!: Subscription;
+
+  constructor(
+    private walletService: WalletService,
+    private marketService: MarketService,
+    private router: Router
+  ) { }
 
   ngOnInit() {
-    this.refreshWallet();
-  }
+    this.subscription = this.marketService.prices$.subscribe(prices => {
+      this.prices = prices;
+      this.calculateTotalValue();
+    });
 
-  refreshWallet() {
     this.walletService.getWallet().subscribe(wallet => {
       this.wallet = wallet;
-      this.assets = wallet.assets.filter((a: any) => a.symbol !== 'USD' && a.quantity > 0);
+      // Show all assets with qty > 0
+      this.assets = wallet.assets.filter((a: any) => a.quantity > 0);
+      this.calculateTotalValue();
     });
   }
 
-  getUsdBalance(): number {
-    return this.wallet?.assets.find((a: any) => a.symbol === 'USD')?.quantity || 0;
+  refreshWallet() {
+    // Compatibility method for legacy components.
+    // The component now auto-updates via subscription.
+  }
+
+  ngOnDestroy() {
+    if (this.subscription) this.subscription.unsubscribe();
+  }
+
+  calculateTotalValue() {
+    if (!this.wallet || !this.wallet.assets) return;
+
+    let usd = 0;
+    this.wallet.assets.forEach((a: any) => {
+      if (a.symbol === 'USD') {
+        usd += a.quantity;
+      } else {
+        const price = this.prices[a.symbol.toLowerCase()] || 0;
+        usd += a.quantity * price;
+      }
+    });
+    this.totalValue = usd;
+
+    const btcPrice = this.prices['bitcoin'] || 1;
+    this.totalValueBtc = usd / btcPrice;
+  }
+
+  getAssetValue(asset: any): number {
+    if (asset.symbol === 'USD') return asset.quantity;
+    const price = this.prices[asset.symbol.toLowerCase()] || 0;
+    return asset.quantity * price;
+  }
+
+  navigateToTrade(symbol: string) {
+    this.router.navigate(['/dashboard/trade', symbol.toLowerCase()]);
   }
 }

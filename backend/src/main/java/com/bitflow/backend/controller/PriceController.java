@@ -1,6 +1,7 @@
 package com.bitflow.backend.controller;
 
 import com.bitflow.backend.service.MarketDataService;
+import com.bitflow.backend.service.PriceAlertService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -21,6 +22,9 @@ public class PriceController {
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
+    @Autowired
+    private PriceAlertService priceAlertService;
+
     @GetMapping
     public ResponseEntity<Map<String, Double>> getCurrentPrices() {
         return ResponseEntity.ok(marketDataService.getLatestPrices());
@@ -30,5 +34,7 @@ public class PriceController {
     public void broadcastPrices() {
         Map<String, Double> prices = marketDataService.getLatestPrices();
         messagingTemplate.convertAndSend("/topic/prices", prices);
+
+        priceAlertService.checkAlerts(prices);
     }
 }

@@ -8,6 +8,9 @@ import com.bitflow.backend.model.User;
 import com.bitflow.backend.repository.UserRepository;
 import com.bitflow.backend.security.jwt.JwtUtils;
 import com.bitflow.backend.security.services.UserDetailsImpl;
+import com.bitflow.backend.security.SolanaAuthenticationProvider;
+import com.bitflow.backend.dto.AuthRequest;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,59 +24,131 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-    @Autowired
-    AuthenticationManager authenticationManager;
+        @Autowired
+        AuthenticationManager authenticationManager;
 
-    @Autowired
-    UserRepository userRepository;
+        @Autowired
+        UserRepository userRepository;
 
-    @Autowired
-    PasswordEncoder encoder;
+        @Autowired
+        PasswordEncoder encoder;
 
-    @Autowired
-    JwtUtils jwtUtils;
+        @Autowired
+        JwtUtils jwtUtils;
 
-    @PostMapping("/login")
-    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
+        @Autowired
+        SolanaAuthenticationProvider solanaAuthenticationProvider;
 
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+        @PostMapping("/login")
+        public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = jwtUtils.generateJwtToken(authentication);
+                Authentication authentication = authenticationManager.authenticate(
+                                new UsernamePasswordAuthenticationToken(loginRequest.getUsername(),
+                                                loginRequest.getPassword()));
 
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+                String jwt = jwtUtils.generateJwtToken(authentication);
 
-        String role = userDetails.getAuthorities().stream()
-                .findFirst().get().getAuthority();
+                UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
-        return ResponseEntity.ok(new JwtResponse(jwt,
-                userDetails.getId(),
-                userDetails.getUsername(),
-                userDetails.getEmail(),
-                role));
-    }
+                String role = userDetails.getAuthorities().stream()
+                                .findFirst().get().getAuthority();
 
-    @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody RegisterRequest signUpRequest) {
-        if (userRepository.existsByUsername(signUpRequest.getUsername())) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(new MessageResponse("Error: Username is already taken!"));
+                return ResponseEntity.ok(new JwtResponse(jwt,
+                                userDetails.getId(),
+                                userDetails.getUsername(),
+                                userDetails.getEmail(),
+                                role));
         }
 
-        if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(new MessageResponse("Error: Email is already in use!"));
+        @PostMapping("/register")
+        public ResponseEntity<?> registerUser(@RequestBody RegisterRequest signUpRequest) {
+                if (userRepository.existsByUsername(signUpRequest.getUsername())) {
+                        return ResponseEntity
+                                        .badRequest()
+                                        .body(new MessageResponse("Error: Username is already taken!"));
+                }
+
+                if (userRepository.existsByEmail(signUpRequest.getEmail())) {
+                        return ResponseEntity
+                                        .badRequest()
+                                        .body(new MessageResponse("Error: Email is already in use!"));
+                }
+
+                User user = new User(signUpRequest.getUsername(),
+                                signUpRequest.getEmail(),
+                                encoder.encode(signUpRequest.getPassword()));
+
+                userRepository.save(user);
+
+                return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
         }
 
-        User user = new User(signUpRequest.getUsername(),
-                signUpRequest.getEmail(),
-                encoder.encode(signUpRequest.getPassword()));
+        @PostMapping("/wallet-login")
+        public ResponseEntity<?> authenticateWallet(@RequestBody AuthRequest authRequest) {
+                // 1. Verify Signature
+                boolean isValid = solanaAuthenticationProvider.isValidSignature(
+                                authRequest.getWalletAddress(),
+                                authRequest.getMessage(),
+                                authRequest.getSignature());
 
-        userRepository.save(user);
+                if (!isValid) {
+                        return ResponseEntity.badRequest().body(new MessageResponse("Error: Invalid Wallet Signature"));
+                }
 
-        return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
-    }
+                // 2. Check if user exists or register
+                String walletAddress = authRequest.getWalletAddress();
+                if (!userRepository.existsByUsername(walletAddress)) {
+                        // Register new wallet user
+                        User user = new User(
+                                        walletAddress,
+                                        walletAddress + "@bitflow.app",
+                                        encoder.encode(UUID.randomUUID().toString())); // Random password
+                        userRepository.save(user);
+                }
+
+                // 3. Generate JWT (manually loading UserDetails)
+                // We cannot use authenticationManager.authenticate() because we don't have the
+                // password.
+                // So we load UserDetails directly and generate token.
+                // Actually, we need to put it into SecurityContext.
+
+                // Load UserDetails
+                // Note: We need to access UserDetailsService.
+                // Or we can manually construct the Authentication object if we trust the
+                // signature.
+
+                // Let's use UserDetailsServiceImpl bean if available, or just fetch User and
+                // build UserDetailsImpl.
+                // UserDetailsServiceImpl is not autowired here but we have UserRepository.
+                // But better to use the Service properly if possible.
+                // Let's Autowire UserDetailsServiceImpl or just fetch from Repo and build.
+                // Since UserDetailsImpl matches User, we can do:
+
+                User user = userRepository.findByUsername(walletAddress)
+                                .orElseThrow(() -> new RuntimeException("Error: User not found."));
+
+                UserDetailsImpl userDetails = new UserDetailsImpl(
+                                user.getId(),
+                                user.getUsername(),
+                                user.getEmail(),
+                                user.getPassword(),
+                                java.util.Collections.singletonList(
+                                                new org.springframework.security.core.authority.SimpleGrantedAuthority(
+                                                                user.getRole())));
+
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                                userDetails,
+                                null,
+                                userDetails.getAuthorities());
+
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+                String jwt = jwtUtils.generateJwtToken(authentication);
+
+                return ResponseEntity.ok(new JwtResponse(jwt,
+                                userDetails.getId(),
+                                userDetails.getUsername(),
+                                userDetails.getEmail(),
+                                "ROLE_USER"));
+        }
 }

@@ -26,10 +26,15 @@ public class JwtUtils {
     public String generateJwtToken(Authentication authentication) {
         UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
 
+        Date now = new Date();
+        Date expiry = new Date(now.getTime() + jwtExpirationMs);
+
+        logger.info("Generating JWT. Now: {}, Expiration: {}, ConfiguredMs: {}", now, expiry, jwtExpirationMs);
+
         return Jwts.builder()
                 .setSubject((userPrincipal.getUsername()))
-                .setIssuedAt(new Date())
-                .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
+                .setIssuedAt(now)
+                .setExpiration(expiry)
                 .signWith(key(), SignatureAlgorithm.HS256)
                 .compact();
     }

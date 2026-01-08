@@ -1,15 +1,16 @@
 package com.bitflow.backend.service;
 
+import com.bitflow.backend.dto.OrderRequest;
+import com.bitflow.backend.exception.BusinessException;
 import com.bitflow.backend.model.*;
 import com.bitflow.backend.repository.OrderRepository;
 import com.bitflow.backend.repository.UserRepository;
 import com.bitflow.backend.repository.WalletRepository;
+import com.bitflow.backend.service.strategy.OrderProcessingStrategy;
+import com.bitflow.backend.service.strategy.OrderStrategyFactory;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Service
 public class TradingService {
@@ -24,12 +25,12 @@ public class TradingService {
     private UserRepository userRepository;
 
     @Autowired
-    private MarketDataService marketDataService;
+    private OrderStrategyFactory orderStrategyFactory;
 
     @Transactional
     public Wallet depositFunds(Long userId, Double amount) {
         if (amount <= 0) {
-            throw new RuntimeException("Deposit amount must be positive");
+            throw new BusinessException("Deposit amount must be positive");
         }
 
         Wallet wallet = getWallet(userId);
@@ -40,78 +41,45 @@ public class TradingService {
     }
 
     @Transactional
+    public Wallet withdrawFunds(Long userId, Double amount) {
+        if (amount <= 0) {
+            throw new BusinessException("Withdrawal amount must be positive");
+        }
+
+        Wallet wallet = getWallet(userId);
+        Asset usd = getOrCreateAsset(wallet, "USD");
+
+        if (usd.getQuantity() < amount) {
+            throw new BusinessException("Insufficient funds");
+        }
+
+        usd.setQuantity(usd.getQuantity() - amount);
+        return walletRepository.save(wallet);
+    }
+
+    @Transactional
     public Order placeOrder(Long userId, String symbol, OrderType type, OrderCategory category, Double quantity,
             Double targetPrice) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BusinessException("User not found"));
 
         Wallet wallet = walletRepository.findByUserId(userId)
                 .orElseGet(() -> createInitialWallet(user));
 
-        Double currentPrice = marketDataService.getLatestPrices().get(symbol.toLowerCase());
-        if (currentPrice == null) {
-            throw new RuntimeException("Price not available for: " + symbol);
+        OrderProcessingStrategy strategy = orderStrategyFactory.getStrategy(category);
+        if (strategy == null) {
+            throw new BusinessException("Unsupported order category: " + category);
         }
 
-        Double executionPrice = (category == OrderCategory.LIMIT) ? targetPrice : currentPrice;
-        OrderStatus initialStatus = (category == OrderCategory.LIMIT) ? OrderStatus.PENDING : OrderStatus.FILLED;
+        OrderRequest request = new OrderRequest();
+        request.setSymbol(symbol);
+        request.setType(type);
+        request.setCategory(category);
+        request.setQuantity(quantity);
+        request.setTargetPrice(targetPrice);
 
-        Double totalValue = executionPrice * quantity;
-        if (type == OrderType.BUY) {
-            Asset usd = getOrCreateAsset(wallet, "USD");
-            if (usd.getQuantity() < totalValue) {
-                throw new RuntimeException("Insufficient USD balance");
-            }
-            usd.setQuantity(usd.getQuantity() - totalValue);
-
-            if (category == OrderCategory.MARKET) {
-                Asset crypto = getOrCreateAsset(wallet, symbol.toUpperCase());
-                crypto.setQuantity(crypto.getQuantity() + quantity);
-            }
-        } else {
-            Asset crypto = getOrCreateAsset(wallet, symbol.toUpperCase());
-            if (crypto.getQuantity() < quantity) {
-                throw new RuntimeException("Insufficient " + symbol + " balance");
-            }
-            crypto.setQuantity(crypto.getQuantity() - quantity);
-
-            if (category == OrderCategory.MARKET) {
-                Asset usd = getOrCreateAsset(wallet, "USD");
-                usd.setQuantity(usd.getQuantity() + totalValue);
-            }
-        }
-
-        walletRepository.save(wallet);
-
-        Order order = new Order(user, symbol, type, category, quantity, executionPrice, targetPrice,
-                LocalDateTime.now(), initialStatus);
+        Order order = strategy.processOrder(request, user, wallet);
         return orderRepository.save(order);
-    }
-
-    private void handleBuy(Wallet wallet, String symbol, Double quantity, Double totalCost) {
-        Asset usd = getOrCreateAsset(wallet, "USD");
-        if (usd.getQuantity() < totalCost) {
-            throw new RuntimeException("Insufficient USD balance");
-        }
-        usd.setQuantity(usd.getQuantity() - totalCost);
-
-        Asset crypto = getOrCreateAsset(wallet, symbol.toUpperCase());
-        crypto.setQuantity(crypto.getQuantity() + quantity);
-
-        walletRepository.save(wallet);
-    }
-
-    private void handleSell(Wallet wallet, String symbol, Double quantity, Double totalValue) {
-        Asset crypto = getOrCreateAsset(wallet, symbol.toUpperCase());
-        if (crypto.getQuantity() < quantity) {
-            throw new RuntimeException("Insufficient " + symbol + " balance");
-        }
-        crypto.setQuantity(crypto.getQuantity() - quantity);
-
-        Asset usd = getOrCreateAsset(wallet, "USD");
-        usd.setQuantity(usd.getQuantity() + totalValue);
-
-        walletRepository.save(wallet);
     }
 
     @Transactional

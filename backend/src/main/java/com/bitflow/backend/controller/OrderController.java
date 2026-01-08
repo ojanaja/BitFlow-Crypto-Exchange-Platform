@@ -24,7 +24,7 @@ public class OrderController {
 
     @PostMapping
     public ResponseEntity<?> placeOrder(@AuthenticationPrincipal UserDetailsImpl userDetails,
-            @RequestBody OrderRequest orderRequest) {
+            @jakarta.validation.Valid @RequestBody OrderRequest orderRequest) {
         try {
             com.bitflow.backend.model.OrderCategory category = orderRequest.getCategory() != null
                     ? orderRequest.getCategory()

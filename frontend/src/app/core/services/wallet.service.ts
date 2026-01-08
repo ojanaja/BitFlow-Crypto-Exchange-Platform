@@ -17,4 +17,8 @@ export class WalletService {
     deposit(amount: number): Observable<any> {
         return this.http.post<any>(`${API_URL}/deposit`, { amount });
     }
+
+    withdraw(amount: number): Observable<any> {
+        return this.http.post<any>(`${API_URL}/withdraw`, { amount });
+    }
 }

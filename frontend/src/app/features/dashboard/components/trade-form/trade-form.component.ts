@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { OrderService } from '../../../../core/services/order.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -101,9 +101,10 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     </div>
   `
 })
-export class TradeFormComponent {
+export class TradeFormComponent implements OnChanges {
   tradeForm: FormGroup;
   loading = false;
+  @Input() symbol: string = '';
   @Output() orderPlaced = new EventEmitter<void>();
 
   constructor(
@@ -127,6 +128,12 @@ export class TradeFormComponent {
       }
       this.tradeForm.get('targetPrice')?.updateValueAndValidity();
     });
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['symbol'] && changes['symbol'].currentValue) {
+      this.tradeForm.patchValue({ symbol: changes['symbol'].currentValue });
+    }
   }
 
   setOrderType(type: 'BUY' | 'SELL') {

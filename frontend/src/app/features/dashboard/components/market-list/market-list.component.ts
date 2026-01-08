@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { MarketService } from '../../../../core/services/market.service';
 import { Subscription } from 'rxjs';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-market-list',
@@ -26,11 +27,22 @@ import { Subscription } from 'rxjs';
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-800">
-            <tr *ngFor="let coin of coins" class="group hover:bg-slate-800/60 transition-colors cursor-pointer">
+            <tr *ngFor="let coin of coins" (click)="navigateToTrade(coin.name)" class="group hover:bg-slate-800/60 transition-colors cursor-pointer">
               <td class="py-4 px-4">
                 <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-400 border border-slate-700 group-hover:border-violet-500/50 group-hover:text-violet-400 transition-colors">
-                        {{ getCoinInitial(coin.name) | uppercase }}
+                    <div class="relative w-8 h-8 flex-shrink-0">
+                         <!-- Image Icon -->
+                         <img [src]="'https://assets.coincap.io/assets/icons/' + coin.name.toLowerCase() + '@2x.png'" 
+                              (error)="coin.imageError = true"
+                              [class.hidden]="coin.imageError"
+                              class="w-8 h-8 rounded-full" 
+                              alt="{{coin.name}}">
+                         
+                         <!-- Fallback Text Icon (shown only if image errors) -->
+                         <div *ngIf="coin.imageError" 
+                              class="w-full h-full rounded-full bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-400 border border-slate-700">
+                             {{ getCoinSymbol(coin.name) }}
+                         </div>
                     </div>
                     <div>
                         <div class="font-bold text-slate-200 group-hover:text-white transition-colors">{{ coin.name | uppercase }}</div>
@@ -60,13 +72,17 @@ export class MarketListComponent implements OnInit, OnDestroy {
   coins: any[] = [];
   subscription!: Subscription;
 
-  constructor(private marketService: MarketService) { }
+  constructor(
+    private marketService: MarketService,
+    private router: Router
+  ) { }
 
   ngOnInit() {
     this.subscription = this.marketService.prices$.subscribe(prices => {
       this.coins = Object.keys(prices).map(key => ({
         name: key,
-        price: prices[key]
+        price: prices[key],
+        imageError: false // Initialize error state
       }));
     });
   }
@@ -77,7 +93,24 @@ export class MarketListComponent implements OnInit, OnDestroy {
     }
   }
 
-  getCoinInitial(name: any): string {
-    return name && typeof name === 'string' ? name.charAt(0) : '?';
+  readonly COIN_SYMBOLS: { [key: string]: string } = {
+    'bitcoin': 'BTC',
+    'ethereum': 'ETH',
+    'solana': 'SOL',
+    'cardano': 'ADA',
+    'ripple': 'XRP',
+    'dogecoin': 'DOGE',
+    'polkadot': 'DOT',
+    'chainlink': 'LINK',
+    'litecoin': 'LTC'
+  };
+
+  getCoinSymbol(name: any): string {
+    if (!name || typeof name !== 'string') return '?';
+    return this.COIN_SYMBOLS[name.toLowerCase()] || name.substring(0, 3).toUpperCase();
+  }
+
+  navigateToTrade(symbol: string) {
+    this.router.navigate(['/dashboard/trade', symbol.toLowerCase()]);
   }
 }

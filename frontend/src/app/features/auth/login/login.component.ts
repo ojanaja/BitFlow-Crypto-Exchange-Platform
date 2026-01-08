@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { SolanaService } from '../../../core/services/solana.service';
 import { first } from 'rxjs/operators';
 
 @Component({
@@ -20,7 +21,8 @@ export class LoginComponent implements OnInit {
         private formBuilder: FormBuilder,
         private route: ActivatedRoute,
         private router: Router,
-        private authService: AuthService
+        private authService: AuthService,
+        private solanaService: SolanaService
     ) {
         if (this.authService.currentUserValue?.token) {
             this.router.navigate(['/']);
@@ -57,5 +59,36 @@ export class LoginComponent implements OnInit {
                     this.loading = false;
                 }
             });
+    }
+
+    async connectWallet() {
+        try {
+            this.loading = true;
+            this.error = '';
+
+            // 1. Connect Wallet
+            const walletAddress = await this.solanaService.connect();
+
+            // 2. Sign Message
+            const message = `Login to BitFlow: ${Date.now()}`;
+            const signature = await this.solanaService.signMessage(message);
+
+            // 3. Send to Backend
+            this.authService.walletLogin(walletAddress, signature, message)
+                .pipe(first())
+                .subscribe({
+                    next: () => {
+                        this.router.navigate([this.returnUrl]);
+                    },
+                    error: (err: any) => {
+                        this.error = 'Wallet login failed: ' + (err.error?.message || err.message);
+                        this.loading = false;
+                    }
+                });
+
+        } catch (err: any) {
+            this.error = err.message;
+            this.loading = false;
+        }
     }
 }

@@ -36,6 +36,17 @@ export class AuthService {
         return this.http.post(API_URL + 'register', user);
     }
 
+    walletLogin(walletAddress: string, signature: string, message: string): Observable<any> {
+        return this.http.post<any>(API_URL + 'wallet-login', { walletAddress, signature, message })
+            .pipe(map(user => {
+                if (user && user.token) {
+                    localStorage.setItem('currentUser', JSON.stringify(user));
+                    this.currentUserSubject.next(user);
+                }
+                return user;
+            }));
+    }
+
     logout() {
         localStorage.removeItem('currentUser');
         this.currentUserSubject.next(null);

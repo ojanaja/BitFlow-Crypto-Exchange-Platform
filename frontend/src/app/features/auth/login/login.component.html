@@ -24,6 +24,16 @@
           <button mat-raised-button color="primary" [disabled]="loading" type="submit" class="w-full h-12">
             Login
           </button>
+          
+          <div class="flex items-center my-2">
+             <div class="flex-grow border-t border-gray-300"></div>
+             <span class="flex-shrink-0 mx-4 text-gray-500 text-sm">OR</span>
+             <div class="flex-grow border-t border-gray-300"></div>
+          </div>
+
+          <button mat-stroked-button color="accent" type="button" (click)="connectWallet()" [disabled]="loading" class="w-full h-12">
+            Connect with Phantom
+          </button>
           <a routerLink="/register" class="text-center text-blue-600 hover:underline">Don't have an account? Register</a>
         </div>
       </form>
