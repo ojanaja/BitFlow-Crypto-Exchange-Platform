@@ -60,10 +60,6 @@ public class BinanceMarketDataService implements MarketDataService {
         return new HashMap<>(prices);
     }
 
-    /**
-     * Inner handler class to avoid Bean conficts if the main service implements
-     * WebSocketHandler
-     */
     private class BinanceWebSocketHandler extends TextWebSocketHandler {
         @Override
         protected void handleTextMessage(WebSocketSession session, TextMessage message) {
@@ -80,11 +76,9 @@ public class BinanceMarketDataService implements MarketDataService {
                     double price = data.get("c").asDouble();
                     prices.put(name, price);
 
-                    // Broadcast updates
                     messagingTemplate.convertAndSend("/topic/prices", prices);
                 }
             } catch (Exception e) {
-                // Silently ignore parsing errors
             }
         }
     }

@@ -72,11 +72,11 @@ class PriceAlertServiceTest {
         when(priceAlertRepository.findAll()).thenReturn(List.of(alert));
 
         Map<String, Double> currentPrices = new HashMap<>();
-        currentPrices.put("btc", 51000.0); // Price went above target
+        currentPrices.put("btc", 51000.0);
 
         priceAlertService.checkAlerts(currentPrices);
 
-        verify(priceAlertRepository).save(any(PriceAlert.class)); // Status updated
+        verify(priceAlertRepository).save(any(PriceAlert.class));
         assertEquals(AlertStatus.TRIGGERED, alert.getStatus());
         verify(messagingTemplate).convertAndSend(eq("/topic/alerts"), any(PriceAlertService.AlertNotification.class));
     }
@@ -89,7 +89,7 @@ class PriceAlertServiceTest {
         when(priceAlertRepository.findAll()).thenReturn(List.of(alert));
 
         Map<String, Double> currentPrices = new HashMap<>();
-        currentPrices.put("btc", 49000.0); // Price stays below
+        currentPrices.put("btc", 49000.0);
 
         priceAlertService.checkAlerts(currentPrices);
 

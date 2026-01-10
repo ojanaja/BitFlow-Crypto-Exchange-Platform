@@ -86,7 +86,6 @@ public class AuthController {
 
         @PostMapping("/wallet-login")
         public ResponseEntity<?> authenticateWallet(@RequestBody AuthRequest authRequest) {
-                // 1. Verify Signature
                 boolean isValid = solanaAuthenticationProvider.isValidSignature(
                                 authRequest.getWalletAddress(),
                                 authRequest.getMessage(),
@@ -96,34 +95,14 @@ public class AuthController {
                         return ResponseEntity.badRequest().body(new MessageResponse("Error: Invalid Wallet Signature"));
                 }
 
-                // 2. Check if user exists or register
                 String walletAddress = authRequest.getWalletAddress();
                 if (!userRepository.existsByUsername(walletAddress)) {
-                        // Register new wallet user
                         User user = new User(
                                         walletAddress,
                                         walletAddress + "@bitflow.app",
-                                        encoder.encode(UUID.randomUUID().toString())); // Random password
+                                        encoder.encode(UUID.randomUUID().toString())); 
                         userRepository.save(user);
                 }
-
-                // 3. Generate JWT (manually loading UserDetails)
-                // We cannot use authenticationManager.authenticate() because we don't have the
-                // password.
-                // So we load UserDetails directly and generate token.
-                // Actually, we need to put it into SecurityContext.
-
-                // Load UserDetails
-                // Note: We need to access UserDetailsService.
-                // Or we can manually construct the Authentication object if we trust the
-                // signature.
-
-                // Let's use UserDetailsServiceImpl bean if available, or just fetch User and
-                // build UserDetailsImpl.
-                // UserDetailsServiceImpl is not autowired here but we have UserRepository.
-                // But better to use the Service properly if possible.
-                // Let's Autowire UserDetailsServiceImpl or just fetch from Repo and build.
-                // Since UserDetailsImpl matches User, we can do:
 
                 User user = userRepository.findByUsername(walletAddress)
                                 .orElseThrow(() -> new RuntimeException("Error: User not found."));

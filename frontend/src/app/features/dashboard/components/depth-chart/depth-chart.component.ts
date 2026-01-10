@@ -33,7 +33,7 @@ export class DepthChartComponent implements OnInit, OnDestroy {
             {
                 data: [],
                 label: 'Bids',
-                backgroundColor: 'rgba(16, 185, 129, 0.2)', // Emerald-500/20
+                backgroundColor: 'rgba(16, 185, 129, 0.2)',
                 borderColor: '#10b981',
                 pointRadius: 0,
                 fill: 'origin',
@@ -42,7 +42,7 @@ export class DepthChartComponent implements OnInit, OnDestroy {
             {
                 data: [],
                 label: 'Asks',
-                backgroundColor: 'rgba(244, 63, 94, 0.2)', // Rose-500/20
+                backgroundColor: 'rgba(244, 63, 94, 0.2)',
                 borderColor: '#f43f5e',
                 pointRadius: 0,
                 fill: 'origin',
@@ -102,40 +102,21 @@ export class DepthChartComponent implements OnInit, OnDestroy {
     updateChart(orderBook: any) {
         if (!orderBook.bids.length || !orderBook.asks.length) return;
 
-        // Process Bids: Sort DESC by price. Cumulative Volume.
-        // We want the chart to go from Low Price -> Mid Price -> High Price
-        // Bids (Buy) are below mid price. Asks (Sell) are above.
-
-        // Sort Bids Ascending for the X axis (Cheap -> Expensive)
         const bidsSorted = [...orderBook.bids].sort((a, b) => a.price - b.price);
-        // Sort Asks Ascending for the X axis
         const asksSorted = [...orderBook.asks].sort((a, b) => a.price - b.price);
-
-        // Calculate Cumulative for Bids (Reverse accumulation for display? 
-        // Usually depth chart is: 
-        // Left side (Bids): Cumulative volume increases as price decreases (going left from mid).
-        // Right side (Asks): Cumulative volume increases as price increases (going right from mid).
-
-        // Let's simplified version: Plot Price (X) vs Cumulative Volume (Y).
 
         const bidPoints: { x: number, y: number }[] = [];
         let bidVol = 0;
-        // For bids, standard depth chart accumulates from highest bid downwards.
-        // Price X axis: Low .... High (Mid) .... High
-        // So for a standard X axis (Price increasing), Bids are on the left.
-        // We accumulate volume starting from the "Heighest Bid" (closest to mid) and going down.
 
         const bidsDesc = [...orderBook.bids].sort((a, b) => b.price - a.price);
         bidsDesc.forEach(b => {
             bidVol += b.quantity;
             bidPoints.push({ x: b.price, y: bidVol });
         });
-        // Need to reverse points so X is increasing
         bidPoints.reverse();
 
         const askPoints: { x: number, y: number }[] = [];
         let askVol = 0;
-        // Start from lowest ask (closest to mid)
         const asksAsc = [...orderBook.asks].sort((a, b) => a.price - b.price);
         asksAsc.forEach(a => {
             askVol += a.quantity;

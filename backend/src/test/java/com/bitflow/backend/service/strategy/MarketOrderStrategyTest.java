@@ -56,7 +56,6 @@ class MarketOrderStrategyTest {
         assertEquals(OrderStatus.FILLED, order.getStatus());
         assertEquals(50000.0, order.getPrice());
 
-        // Verify Wallet balance updates (internal logic)
         verify(walletRepository).save(testWallet);
     }
 }

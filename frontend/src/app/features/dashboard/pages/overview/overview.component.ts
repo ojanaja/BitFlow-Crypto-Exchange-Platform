@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MarketListComponent } from '../../components/market-list/market-list.component';
 import { WalletService } from '../../../../core/services/wallet.service';
 import { MarketService } from '../../../../core/services/market.service';
+import { SolanaService } from '../../../../core/services/solana.service';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DepositDialogComponent } from '../../components/deposit-dialog/deposit-dialog.component';
@@ -44,7 +45,7 @@ import { WithdrawDialogComponent } from '../../components/withdraw-dialog/withdr
              </div>
 
              <div class="flex items-baseline gap-2 mb-1">
-                 <h2 class="text-4xl lg:text-5xl font-bold text-white tracking-tight">{{ totalBalanceBtc | number:'1.2-8' }} <span class="text-xl lg:text-2xl text-slate-400 font-normal">BTC</span></h2>
+                 <h2 class="text-4xl lg:text-5xl font-bold text-white tracking-tight">{{ totalBalanceSol | number:'1.2-4' }} <span class="text-xl lg:text-2xl text-slate-400 font-normal">SOL</span></h2>
              </div>
              <p class="text-slate-400 text-sm">≈ {{ totalBalanceUsd | currency:'USD' }}</p>
              
@@ -64,25 +65,55 @@ import { WithdrawDialogComponent } from '../../components/withdraw-dialog/withdr
 
          <!-- Quick Discovery / Gainers -->
          <div>
-            <h3 class="text-lg font-semibold text-white mb-4">Market Trends</h3>
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-white">Market Trends</h3>
+                <div class="flex bg-slate-800 rounded-lg p-1">
+                    <button (click)="setActiveTab('watchlist')" [class.bg-slate-700]="activeTab === 'watchlist'" [class.text-white]="activeTab === 'watchlist'" class="px-3 py-1 rounded text-xs font-medium text-slate-400 transition-colors">Watchlist</button>
+                    <button (click)="setActiveTab('gainers')" [class.bg-slate-700]="activeTab === 'gainers'" [class.text-white]="activeTab === 'gainers'" class="px-3 py-1 rounded text-xs font-medium text-slate-400 transition-colors">Gainers</button>
+                    <button (click)="setActiveTab('losers')" [class.bg-slate-700]="activeTab === 'losers'" [class.text-white]="activeTab === 'losers'" class="px-3 py-1 rounded text-xs font-medium text-slate-400 transition-colors">Losers</button>
+                    <button (click)="setActiveTab('volume')" [class.bg-slate-700]="activeTab === 'volume'" [class.text-white]="activeTab === 'volume'" class="px-3 py-1 rounded text-xs font-medium text-slate-400 transition-colors">Volume</button>
+                </div>
+            </div>
+            
             <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
                
                <div *ngFor="let market of topMarkets" class="flex items-center justify-between p-2 hover:bg-slate-800/50 rounded transition-colors cursor-default">
                   <div class="flex items-center gap-3">
-                     <div class="w-8 h-8 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center font-bold text-xs border border-slate-700">
-                        {{ market.symbol[0] | uppercase }}
+                     <!-- Icon Container -->
+                     <div class="relative w-8 h-8 flex-shrink-0">
+                        <img [src]="'https://assets.coincap.io/assets/icons/' + market.symbol.toLowerCase() + '@2x.png'" 
+                             (error)="market.imageError = true"
+                             [class.hidden]="market.imageError"
+                             class="w-8 h-8 rounded-full" 
+                             alt="{{market.symbol}}">
+                        
+                        <!-- Fallback (shown if image error) -->
+                        <div *ngIf="market.imageError" 
+                             class="absolute inset-0 w-full h-full rounded-full bg-slate-800 text-slate-300 flex items-center justify-center font-bold text-xs border border-slate-700">
+                           {{ market.symbol[0] | uppercase }}
+                        </div>
                      </div>
+
                      <div>
                         <p class="font-bold text-white uppercase">{{ market.symbol }}</p>
-                        <p class="text-xs text-slate-500">Crypto</p>
+                        <p class="text-xs text-slate-500">{{ market.name | titlecase }}</p>
                      </div>
                   </div>
                   <div class="text-right">
-                     <p class="text-white font-medium">{{ market.price | currency:'USD':'symbol':'1.2-2' }}</p>
-                     <p class="text-xs" [ngClass]="market.change >= 0 ? 'text-emerald-400' : 'text-red-400'">
-                        {{ market.change >= 0 ? '+' : '' }}{{ market.change }}%
+                     <p class="text-white font-medium">
+                        {{ market.price | currency:'USD':'symbol':(market.price < 1 ? '1.4-6' : '1.2-2') }}
+                     </p>
+                     <p *ngIf="activeTab !== 'volume'" class="text-xs" [ngClass]="market.change >= 0 ? 'text-emerald-400' : 'text-red-400'">
+                        {{ market.change >= 0 ? '+' : '' }}{{ market.change | number:'1.2-2' }}%
+                     </p>
+                     <p *ngIf="activeTab === 'volume'" class="text-xs text-slate-400">
+                        Vol: {{ market.volume | currency:'USD':'symbol':'1.0-0' }}
                      </p>
                   </div>
+               </div>
+               
+               <div *ngIf="topMarkets.length === 0" class="text-center py-4 text-slate-500 text-sm">
+                  Loading trends...
                </div>
 
             </div>
@@ -93,62 +124,130 @@ import { WithdrawDialogComponent } from '../../components/withdraw-dialog/withdr
 })
 export class OverviewPageComponent implements OnInit {
    totalBalanceUsd = 0;
-   totalBalanceBtc = 0;
+   totalBalanceSol = 0;
    topMarkets: any[] = [];
+   walletAddress: string | null = null;
 
    private prices: any = {};
 
    constructor(
       private walletService: WalletService,
       private marketService: MarketService,
+      private solanaService: SolanaService,
       private dialog: MatDialog,
       private snackBar: MatSnackBar
    ) { }
 
+   activeTab: 'watchlist' | 'gainers' | 'losers' | 'volume' = 'watchlist';
+   marketTrends: any = { gainers: [], losers: [], volume: [] };
+   allMarkets: any[] = [];
+   watchlist: string[] = [];
+
    ngOnInit() {
-      // Subscribe to prices to keep local cache
       this.marketService.prices$.subscribe(prices => {
          this.prices = prices;
          this.updateBalance();
-         this.updateTopMarkets();
-      });
 
-      this.walletService.getWallet().subscribe(wallet => {
-         if (wallet && wallet.assets) {
-            this.updateBalance();
+         if (this.activeTab === 'watchlist') {
+            this.updateTopMarkets();
          }
       });
+
+      this.marketService.marketTrends$.subscribe(trends => {
+         this.marketTrends = trends;
+         if (this.activeTab !== 'watchlist') {
+            this.updateTopMarkets();
+         }
+      });
+
+      this.marketService.allMarkets$.subscribe(markets => {
+         this.allMarkets = markets;
+         if (this.activeTab === 'watchlist') {
+            this.updateTopMarkets();
+         }
+      });
+
+      this.marketService.watchlist$.subscribe(list => {
+         this.watchlist = list;
+         if (this.activeTab === 'watchlist') {
+            this.updateTopMarkets();
+         }
+      });
+
+      this.solanaService.walletAddress$.subscribe(address => {
+         this.walletAddress = address;
+         this.updateBalance();
+      });
+
+      if (!this.walletAddress) {
+         const stored = localStorage.getItem('walletAddress');
+         if (stored) {
+            this.walletAddress = stored;
+            this.updateBalance();
+         }
+      }
+
+      this.updateTopMarkets();
    }
 
-   updateBalance() {
-      this.walletService.getWallet().subscribe(wallet => {
-         if (!wallet || !wallet.assets) return;
+   async updateBalance() {
+      if (!this.walletAddress) return;
 
-         let usd = 0;
-         wallet.assets.forEach((a: any) => {
-            if (a.symbol === 'USD') {
-               usd += a.quantity;
-            } else {
-               const price = this.prices[a.symbol.toLowerCase()] || 0;
-               usd += a.quantity * price;
-            }
-         });
+      const solBalance = await this.solanaService.getBalance(this.walletAddress);
+      this.totalBalanceSol = solBalance;
 
-         const btcPrice = this.prices['bitcoin'] || 1;
-         this.totalBalanceUsd = usd;
-         this.totalBalanceBtc = usd / btcPrice;
-      });
+      const solPrice = this.prices['solana'] || 0;
+      this.totalBalanceUsd = solBalance * solPrice;
+   }
+
+   private assetToSymbol: { [key: string]: string } = {
+      'bitcoin': 'btc',
+      'ethereum': 'eth',
+      'solana': 'sol',
+      'xrp': 'xrp',
+      'cardano': 'ada',
+      'dogecoin': 'doge',
+      'polkadot': 'dot',
+      'chainlink': 'link',
+      'litecoin': 'ltc'
+   };
+
+   setActiveTab(tab: 'watchlist' | 'gainers' | 'losers' | 'volume') {
+      this.activeTab = tab;
+      this.updateTopMarkets();
    }
 
    updateTopMarkets() {
-      // Mocking some "change" percentage since we only have raw prices
-      // In a real app, API would provide 24h change.
-      const symbols = ['bitcoin', 'ethereum', 'solana', 'cardano'];
-      this.topMarkets = symbols.map(sym => ({
-         symbol: sym,
-         price: this.prices[sym] || 0,
-         change: (Math.random() * 10 - 5).toFixed(2) // Fake change for demo visual
-      })).filter(m => m.price > 0);
+      if (this.activeTab === 'watchlist') {
+         const watchlistItems = this.allMarkets.filter(coin =>
+            this.watchlist.includes((coin.id || coin.name).toLowerCase())
+         );
+
+         this.topMarkets = watchlistItems.map(item => {
+            const realTimePrice = this.prices[item.name.toLowerCase()] || this.prices[item.id?.toLowerCase()];
+
+            return {
+               name: item.name,
+               symbol: item.symbol,
+               price: realTimePrice || item.price,
+               change: item.change,
+               volume: item.volume,
+               imageError: false,
+               imageKey: item.imageKey
+            };
+         });
+      } else {
+         const data = this.marketTrends[this.activeTab] || [];
+         this.topMarkets = data.map((item: any) => ({
+            name: item.name,
+            symbol: item.symbol,
+            price: item.price,
+            change: item.change,
+            volume: item.volume,
+            imageError: false,
+            imageKey: item.imageKey
+         }));
+      }
    }
 
    openDepositDialog() {
@@ -159,7 +258,7 @@ export class OverviewPageComponent implements OnInit {
 
       dialogRef.afterClosed().subscribe(result => {
          if (result) {
-            this.updateBalance(); // Refresh balance
+            this.updateBalance();
          }
       });
    }
@@ -172,7 +271,7 @@ export class OverviewPageComponent implements OnInit {
 
       dialogRef.afterClosed().subscribe(result => {
          if (result) {
-            this.updateBalance(); // Refresh balance
+            this.updateBalance();
          }
       });
    }

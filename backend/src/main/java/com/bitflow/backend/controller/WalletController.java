@@ -19,6 +19,9 @@ public class WalletController {
     @Autowired
     private TradingService tradingService;
 
+    @Autowired
+    private com.bitflow.backend.service.SolanaService solanaService;
+
     @GetMapping
     public ResponseEntity<Wallet> getWallet(@AuthenticationPrincipal UserDetailsImpl userDetails) {
         Wallet wallet = tradingService.getWallet(userDetails.getId());
@@ -37,5 +40,11 @@ public class WalletController {
             @RequestBody com.bitflow.backend.dto.WithdrawRequest request) {
         Wallet wallet = tradingService.withdrawFunds(userDetails.getId(), request.getAmount());
         return ResponseEntity.ok(wallet);
+    }
+
+    @GetMapping("/solana/balance")
+    public ResponseEntity<Double> getSolanaBalance(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        double balance = solanaService.getBalance(userDetails.getUsername());
+        return ResponseEntity.ok(balance);
     }
 }

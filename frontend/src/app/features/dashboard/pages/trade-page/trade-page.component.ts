@@ -16,13 +16,13 @@ import { MarketService } from '../../../../core/services/market.service';
    template: `
     <div class="flex flex-col h-[calc(100vh-80px)] lg:h-[calc(100vh-100px)] gap-4 p-2">
        
-       <!-- Top Bar: Coin Info (mocked for now, implies connection to route param) -->
+       <!-- Top Bar: Coin Info -->
        <div class="bg-slate-900 border border-slate-800 p-3 rounded-lg flex items-center justify-between shrink-0">
           <div class="flex items-center gap-3">
              <div class="text-xl font-bold text-white flex items-center gap-1">
-                {{ symbol }} <span class="text-slate-500 text-sm font-normal">/ USD</span>
+                {{ displaySymbol }} <span class="text-slate-500 text-sm font-normal">/ USD</span>
              </div>
-             <div class="text-emerald-400 font-medium">$45,230.50</div>
+             <div class="text-emerald-400 font-mono font-medium">{{ currentPrice | currency:'USD':'symbol':'1.2-2' }}</div>
           </div>
           <div class="flex gap-2">
              <button class="text-slate-400 hover:text-white"><mat-icon>star_border</mat-icon></button>
@@ -90,18 +90,47 @@ import { MarketService } from '../../../../core/services/market.service';
 })
 export class TradePageComponent implements OnInit {
    symbol: string = 'BTC';
+   displaySymbol: string = 'BTC';
+   currentPrice: number = 0;
    chartMode: 'PRICE' | 'DEPTH' = 'PRICE';
+   private assetToSymbol: { [key: string]: string } = {
+      'bitcoin': 'BTC',
+      'ethereum': 'ETH',
+      'solana': 'SOL',
+      'ripple': 'XRP',
+      'cardano': 'ADA',
+      'dogecoin': 'DOGE',
+      'polkadot': 'DOT',
+      'chainlink': 'LINK',
+      'litecoin': 'LTC',
+      'bnb': 'BNB',
+      'tether': 'USDT',
+      'usdc': 'USDC',
+      'tron': 'TRX'
+   };
 
-   constructor(private route: ActivatedRoute) { }
+   constructor(
+      private route: ActivatedRoute,
+      private marketService: MarketService
+   ) { }
 
    ngOnInit() {
       this.route.paramMap.subscribe(params => {
-         this.symbol = params.get('symbol') || 'BTC';
-         // Here we would trigger MarketService to subscribe to this specific channel
+         const rawSymbol = params.get('symbol');
+         if (rawSymbol) {
+            this.symbol = rawSymbol;
+            this.displaySymbol = (this.assetToSymbol[rawSymbol.toLowerCase()] || rawSymbol).toUpperCase();
+         }
+      });
+
+      this.marketService.prices$.subscribe(prices => {
+         if (this.symbol) {
+            this.currentPrice = prices[this.symbol] || prices[this.symbol.toLowerCase()] || 0;
+         }
       });
    }
 
    refreshWallet() {
-      // connect to portfolio refresh
+
    }
 }

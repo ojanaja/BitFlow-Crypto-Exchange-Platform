@@ -66,14 +66,11 @@ export class LoginComponent implements OnInit {
             this.loading = true;
             this.error = '';
 
-            // 1. Connect Wallet
             const walletAddress = await this.solanaService.connect();
 
-            // 2. Sign Message
             const message = `Login to BitFlow: ${Date.now()}`;
             const signature = await this.solanaService.signMessage(message);
 
-            // 3. Send to Backend
             this.authService.walletLogin(walletAddress, signature, message)
                 .pipe(first())
                 .subscribe({

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Input } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { MarketService } from '../../../../core/services/market.service';
 import { Subscription } from 'rxjs';
 
@@ -66,7 +66,7 @@ import { Subscription } from 'rxjs';
             <div class="px-4 py-2 border-t border-slate-800 bg-slate-950/50 flex justify-between text-[10px] text-slate-600 uppercase font-mono shrink-0">
                 <span>Level</span>
                 <span class="text-right w-1/2 sm:w-auto">Amount</span>
-                <span class="hidden sm:block">Total (BTC)</span>
+                <span class="hidden sm:block">Total ({{ symbol }})</span>
             </div>
         </div>
 
@@ -74,7 +74,7 @@ import { Subscription } from 'rxjs';
         <div *ngIf="activeTab === 'TRADES'" class="flex-1 overflow-hidden flex flex-col">
             <div class="px-4 py-2 bg-slate-950/50 border-b border-slate-800 flex justify-between text-[10px] text-slate-500 uppercase font-bold tracking-wider shrink-0">
                 <span class="w-1/3 text-left">Price (USD)</span>
-                <span class="w-1/3 text-right">Amount (BTC)</span>
+                <span class="w-1/3 text-right">Amount ({{ symbol }})</span>
                 <span class="w-1/3 text-right">Time</span>
             </div>
 
@@ -91,7 +91,7 @@ import { Subscription } from 'rxjs';
     </div>
     `
 })
-export class OrderBookComponent implements OnInit, OnDestroy {
+export class OrderBookComponent implements OnInit, OnDestroy, OnChanges {
     @Input() symbol: string = 'BTC';
     orderBook: any = null;
     recentTrades: any[] = [];
@@ -99,11 +99,22 @@ export class OrderBookComponent implements OnInit, OnDestroy {
     spread: number = 0;
     currentPrice: number = 0;
     priceColorClass: string = 'text-white';
+    symbolKey: string = 'bitcoin';
 
     activeTab: 'BOOK' | 'TRADES' = 'BOOK';
     private subscriptions: Subscription = new Subscription();
 
     constructor(private marketService: MarketService) { }
+
+    ngOnChanges(changes: SimpleChanges) {
+        if (changes['symbol']) {
+            const map: { [key: string]: string } = {
+                'BTC': 'bitcoin', 'ETH': 'ethereum', 'SOL': 'solana', 'XRP': 'ripple',
+                'ADA': 'cardano', 'DOGE': 'dogecoin', 'DOT': 'polkadot', 'LINK': 'chainlink', 'LTC': 'litecoin'
+            };
+            this.symbolKey = map[this.symbol] || this.symbol.toLowerCase();
+        }
+    }
 
     ngOnInit() {
         this.subscriptions.add(
@@ -117,7 +128,7 @@ export class OrderBookComponent implements OnInit, OnDestroy {
 
         this.subscriptions.add(
             this.marketService.prices$.subscribe(prices => {
-                const newPrice = prices['bitcoin']; // TODO: Use this.symbol to get dynamic price key
+                const newPrice = prices[this.symbolKey] || prices[this.symbol.toLowerCase()] || prices['bitcoin'];
                 if (newPrice) {
                     this.priceColorClass = newPrice >= this.currentPrice ? 'text-emerald-400' : 'text-rose-400';
                     this.currentPrice = newPrice;

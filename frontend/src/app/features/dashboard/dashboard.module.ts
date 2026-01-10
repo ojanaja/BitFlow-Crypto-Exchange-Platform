@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { NgModule, CUSTOM_ELEMENTS_SCHEMA, NO_ERRORS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -17,7 +17,6 @@ import { FormsModule } from '@angular/forms';
 import { NgChartsModule } from 'ng2-charts';
 import { DashboardRoutingModule } from './dashboard-routing.module';
 
-// New Components
 import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { DashboardLayoutComponent } from './pages/dashboard-layout/dashboard-layout.component';
 import { OverviewPageComponent } from './pages/overview/overview.component';
@@ -26,7 +25,6 @@ import { TradePageComponent } from './pages/trade-page/trade-page.component';
 import { AssetsPageComponent } from './pages/assets-page/assets-page.component';
 import { OrdersPageComponent } from './pages/orders-page/orders-page.component';
 
-// Old Components (Legacy)
 import { DashboardHomeComponent } from './pages/dashboard-home/dashboard-home.component';
 import { PortfolioSummaryComponent } from './components/portfolio-summary/portfolio-summary.component';
 import { MarketListComponent } from './components/market-list/market-list.component';
@@ -41,7 +39,6 @@ import { CreateAlertDialogComponent } from './components/create-alert-dialog/cre
 import { DepthChartComponent } from './components/depth-chart/depth-chart.component';
 import { WithdrawDialogComponent } from './components/withdraw-dialog/withdraw-dialog.component';
 
-// New Components
 
 @NgModule({
     declarations: [
@@ -57,7 +54,6 @@ import { WithdrawDialogComponent } from './components/withdraw-dialog/withdraw-d
         AlertsComponent,
         CreateAlertDialogComponent,
         DepthChartComponent,
-        // New Layout & Pages
         SidebarComponent,
         DashboardLayoutComponent,
         OverviewPageComponent,
@@ -72,7 +68,7 @@ import { WithdrawDialogComponent } from './components/withdraw-dialog/withdraw-d
         ReactiveFormsModule,
         FormsModule,
         NgChartsModule,
-        DashboardRoutingModule, // Using the routing module file
+        DashboardRoutingModule,
         MatCardModule,
         MatButtonModule,
         MatInputModule,
@@ -83,6 +79,7 @@ import { WithdrawDialogComponent } from './components/withdraw-dialog/withdraw-d
         MatDialogModule,
         MatIconModule,
         MatTooltipModule
-    ]
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA, NO_ERRORS_SCHEMA]
 })
 export class DashboardModule { }

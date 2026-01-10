@@ -3,7 +3,10 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 import { MarketService } from '../../../../core/services/market.service';
+import { SolanaService } from '../../../../core/services/solana.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
    selector: 'app-dashboard-layout',
@@ -22,13 +25,16 @@ import { MarketService } from '../../../../core/services/market.service';
 
            <!-- Right Actions -->
            <div class="flex items-center gap-4">
-              <div class="hidden sm:flex items-center bg-slate-900 rounded-full px-4 py-1.5 border border-slate-800">
-                 <mat-icon class="text-slate-400 text-sm">search</mat-icon>
-                 <input type="text" placeholder="Search coin..." class="bg-transparent border-none outline-none text-sm text-white ml-2 w-32 focus:w-48 transition-all placeholder-slate-500">
-              </div>
+              <!-- Search removed for brevity/mobile fit -->
               
-              <button class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-1.5 rounded-full text-sm font-medium transition-colors">
-                 Deposit
+              <div *ngIf="walletAddress" class="hidden md:flex items-center gap-2 text-sm bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800">
+                  <span class="text-slate-400">Wallet:</span>
+                  <span class="text-slate-200 font-mono">{{ shortenAddress(walletAddress) }}</span>
+                  <span *ngIf="balance !== null" class="text-green-400 ml-2 font-medium border-l border-slate-700 pl-2">{{ balance | number:'1.2-4' }} SOL</span>
+              </div>
+
+              <button (click)="logout()" class="hover:bg-red-900/20 text-red-400 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors border border-transparent hover:border-red-900/30">
+                 Disconnect
               </button>
            </div>
         </header>
@@ -42,10 +48,46 @@ import { MarketService } from '../../../../core/services/market.service';
   `
 })
 export class DashboardLayoutComponent implements OnInit, OnDestroy {
-   constructor(private marketService: MarketService) { }
+   walletAddress: string | null = null;
+   balance: number | null = null;
+
+   constructor(
+      private marketService: MarketService,
+      private solanaService: SolanaService,
+      private authService: AuthService
+   ) { }
 
    ngOnInit() {
       this.marketService.connect();
+
+      this.solanaService.walletAddress$.subscribe(address => {
+         this.walletAddress = address;
+         if (address) {
+            this.fetchBalance(address);
+         }
+      });
+
+      if (!this.walletAddress) {
+         const stored = localStorage.getItem('walletAddress');
+         if (stored) {
+            this.walletAddress = stored;
+            this.fetchBalance(stored);
+         }
+      }
+   }
+
+   async fetchBalance(address: string) {
+      this.balance = await this.solanaService.getBalance(address);
+   }
+
+   shortenAddress(address: string): string {
+      if (!address) return '';
+      return address.slice(0, 4) + '...' + address.slice(-4);
+   }
+
+   logout() {
+      this.solanaService.disconnect();
+      this.authService.logout();
    }
 
    ngOnDestroy() {

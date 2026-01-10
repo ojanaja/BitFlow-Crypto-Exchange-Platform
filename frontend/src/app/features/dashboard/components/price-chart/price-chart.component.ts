@@ -7,32 +7,9 @@ import { MarketService } from '../../../../core/services/market.service';
     template: `
     <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-lg h-[400px] flex flex-col relative">
       <!-- Header -->
-      <div class="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-900/50 backdrop-blur z-10 absolute top-0 left-0 right-0">
-        <div class="flex items-center gap-4">
-            <div class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-full bg-amber-500/20 text-amber-500 flex items-center justify-center font-bold">
-                    {{ symbol.charAt(0) }}
-                </div>
-                <div>
-                    <h3 class="font-bold text-white leading-none">{{ symbol }}/USD</h3>
-                    <div class="text-xs text-slate-400">Crypto Asset</div>
-                </div>
-            </div>
-            <div class="hidden md:block h-8 w-px bg-slate-800 mx-2"></div>
-            <div class="hidden md:flex gap-4 text-sm font-mono">
-                <div>
-                    <span class="text-slate-500 block text-[10px] uppercase">Last Price</span>
-                    <span class="text-emerald-400 font-bold">$45,230.50</span>
-                </div>
-                <div>
-                    <span class="text-slate-500 block text-[10px] uppercase">24h Change</span>
-                    <span class="text-emerald-500 font-bold">+2.45%</span>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Controls -->
-        <div class="flex gap-2">
+      <div class="flex items-center justify-end p-4 border-b border-slate-800 bg-slate-900/50 backdrop-blur z-10 absolute top-0 left-0 right-0 pointer-events-none">
+        <!-- Controls (pointer-events-auto needed because parent is none) -->
+        <div class="flex gap-2 pointer-events-auto">
             <!-- Timeframe Selector -->
             <div class="flex bg-slate-950 p-1 rounded-lg border border-slate-800">
                 <button *ngFor="let tf of ['1M', '15M', '1H', '4H', '1D']" 
@@ -78,7 +55,6 @@ export class PriceChartComponent implements AfterViewInit, OnDestroy, OnChanges 
 
     ngOnChanges(changes: SimpleChanges) {
         if (changes['symbol'] && !changes['symbol'].firstChange) {
-            // Reload data/chart when symbol changes
             if (this.series) {
                 this.loadData();
             }
@@ -121,7 +97,6 @@ export class PriceChartComponent implements AfterViewInit, OnDestroy, OnChanges 
 
         this.chart = createChart(this.chartContainer.nativeElement, chartOptions);
 
-        // Initial series
         this.createSeries(this.activeType);
         this.loadData();
 
@@ -141,7 +116,6 @@ export class PriceChartComponent implements AfterViewInit, OnDestroy, OnChanges 
         if (this.activeType === type) return;
         this.activeType = type;
 
-        // Remove old series
         if (this.series) {
             this.chart.removeSeries(this.series);
         }
@@ -175,7 +149,11 @@ export class PriceChartComponent implements AfterViewInit, OnDestroy, OnChanges 
     }
 
     private loadData() {
-        const data = this.marketService.generateHistoricalData(this.activeTimeframe);
-        this.series.setData(data);
+        this.marketService.getMarketHistory(this.symbol, this.activeTimeframe).subscribe(data => {
+            if (this.series) {
+                this.series.setData(data);
+                this.chart.timeScale().fitContent();
+            }
+        });
     }
 }

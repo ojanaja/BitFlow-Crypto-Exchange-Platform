@@ -76,8 +76,6 @@ public class MarketOrderStrategy implements OrderProcessingStrategy {
         walletRepository.save(wallet);
     }
 
-    // Helper method to handle asset retrieval/creation (could be moved to a shared
-    // utility or service)
     private Asset getOrCreateAsset(Wallet wallet, String symbol) {
         return wallet.getAssets().stream()
                 .filter(a -> a.getSymbol().equalsIgnoreCase(symbol))

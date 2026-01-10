@@ -95,15 +95,12 @@ export class PortfolioSummaryComponent implements OnInit, OnDestroy {
 
     this.walletService.getWallet().subscribe(wallet => {
       this.wallet = wallet;
-      // Show all assets with qty > 0
       this.assets = wallet.assets.filter((a: any) => a.quantity > 0);
       this.calculateTotalValue();
     });
   }
 
   refreshWallet() {
-    // Compatibility method for legacy components.
-    // The component now auto-updates via subscription.
   }
 
   ngOnDestroy() {

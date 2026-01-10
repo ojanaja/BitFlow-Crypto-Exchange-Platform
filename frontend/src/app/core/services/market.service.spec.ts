@@ -20,9 +20,8 @@ describe('MarketService', () => {
 
     it('should generate historical data for default 1H interval', () => {
         const data = service.generateHistoricalData();
-        expect(data.length).toBe(720); // 30 days * 24h
+        expect(data.length).toBe(720); 
 
-        // Check structure
         const candle = data[0];
         expect(candle.time).toBeDefined();
         expect(candle.open).toBeDefined();
@@ -33,13 +32,12 @@ describe('MarketService', () => {
 
     it('should generate data for custom interval (e.g., 1M)', () => {
         const data = service.generateHistoricalData('1M');
-        expect(data.length).toBe(1440); // 24h * 60m
+        expect(data.length).toBe(1440); 
     });
 
     it('should stream recent trades', (done) => {
         service.recentTrades$.pipe(take(1)).subscribe(trades => {
             expect(Array.isArray(trades)).toBeTrue();
-            // Since it starts empty or waits for interval, we mostly check it subscribes
             done();
         });
     });

@@ -45,7 +45,6 @@ public class BinanceMarketDataService extends TextWebSocketHandler implements Ma
     @PostConstruct
     public void connect() {
         StandardWebSocketClient client = new StandardWebSocketClient();
-        // Stream for miniTicker of selected pairs
         String uri = "wss://stream.binance.com:9443/stream?streams=btcusdt@miniTicker/ethusdt@miniTicker/solusdt@miniTicker/xrpusdt@miniTicker/adausdt@miniTicker/dogeusdt@miniTicker/dotusdt@miniTicker/linkusdt@miniTicker";
 
         try {
@@ -60,24 +59,20 @@ public class BinanceMarketDataService extends TextWebSocketHandler implements Ma
     protected void handleTextMessage(WebSocketSession session, TextMessage message) {
         try {
             JsonNode node = objectMapper.readTree(message.getPayload());
-            // Format:
-            // {"stream":"btcusdt@miniTicker","data":{"e":"24hrMiniTicker","E":167...,"s":"BTCUSDT","c":"45000.00",...}}
             JsonNode data = node.get("data");
             if (data == null)
                 return;
 
-            String symbol = data.get("s").asText().toLowerCase(); // e.g. btcusdt
+            String symbol = data.get("s").asText().toLowerCase();
             String name = symbolMapping.get(symbol);
 
             if (name != null) {
                 double price = data.get("c").asDouble();
                 prices.put(name, price);
 
-                // Broadcast updates
                 messagingTemplate.convertAndSend("/topic/prices", prices);
             }
         } catch (Exception e) {
-            // Silently ignore parsing errors or connection issues for now
         }
     }
 

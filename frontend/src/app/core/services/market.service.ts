@@ -21,11 +21,26 @@ export class MarketService {
     private recentTradesSubject = new BehaviorSubject<any[]>([]);
     public recentTrades$ = this.recentTradesSubject.asObservable();
 
+    private marketTrendsSubject = new BehaviorSubject<any>({ gainers: [], losers: [], volume: [] });
+    public marketTrends$ = this.marketTrendsSubject.asObservable();
+
+    private allMarketsSubject = new BehaviorSubject<any[]>([]);
+    public allMarkets$ = this.allMarketsSubject.asObservable();
+
+    private watchlistSubject = new BehaviorSubject<string[]>([]);
+    public watchlist$ = this.watchlistSubject.asObservable();
+
+    private isConnectedSubject = new BehaviorSubject<boolean>(false);
+    public isConnected$ = this.isConnectedSubject.asObservable();
+
+    private DEFAULT_WATCHLIST = ['bitcoin', 'ethereum', 'solana', 'ripple', 'cardano', 'dogecoin', 'polkadot', 'chainlink', 'litecoin'];
+
     constructor(private http: HttpClient) {
+        this.loadWatchlist();
+
         this.stompClient = new Client({
             webSocketFactory: () => new SockJS(WS_URL),
             debug: (str) => {
-                console.log(str);
             },
             reconnectDelay: 5000,
             heartbeatIncoming: 4000,
@@ -33,10 +48,24 @@ export class MarketService {
         });
 
         this.stompClient.onConnect = (frame) => {
-            console.log('Connected: ' + frame);
+            console.log('Connected to Market WebSocket');
+            this.isConnectedSubject.next(true);
+
             this.stompClient.subscribe('/topic/prices', (message: Message) => {
                 if (message.body) {
                     this.pricesSubject.next(JSON.parse(message.body));
+                }
+            });
+
+            this.stompClient.subscribe('/topic/market-trends', (message: Message) => {
+                if (message.body) {
+                    this.marketTrendsSubject.next(JSON.parse(message.body));
+                }
+            });
+
+            this.stompClient.subscribe('/topic/all-markets', (message: Message) => {
+                if (message.body) {
+                    this.allMarketsSubject.next(JSON.parse(message.body));
                 }
             });
 
@@ -50,18 +79,57 @@ export class MarketService {
         this.stompClient.onStompError = (frame) => {
             console.error('Broker reported error: ' + frame.headers['message']);
             console.error('Additional details: ' + frame.body);
+            this.isConnectedSubject.next(false);
         };
 
-        // Start fake trade generator
+        this.stompClient.onWebSocketClose = () => {
+            console.log('WebSocket connection closed');
+            this.isConnectedSubject.next(false);
+        };
+
+        this.stompClient.activate();
+
         this.startFakeTrades();
+    }
+
+    private loadWatchlist() {
+        const stored = localStorage.getItem('user_watchlist');
+        if (stored) {
+            try {
+                this.watchlistSubject.next(JSON.parse(stored));
+            } catch (e) {
+                console.error('Failed to parse watchlist', e);
+                this.watchlistSubject.next(this.DEFAULT_WATCHLIST);
+            }
+        } else {
+            this.watchlistSubject.next(this.DEFAULT_WATCHLIST);
+        }
+    }
+
+    toggleWatchlist(coinId: string) {
+        let current = this.watchlistSubject.value;
+        const normalizedId = coinId.toLowerCase();
+
+        if (current.includes(normalizedId)) {
+            current = current.filter(id => id !== normalizedId);
+        } else {
+            current = [...current, normalizedId];
+        }
+
+        this.watchlistSubject.next(current);
+        localStorage.setItem('user_watchlist', JSON.stringify(current));
+    }
+
+    isInWatchlist(coinId: string): boolean {
+        return this.watchlistSubject.value.includes(coinId.toLowerCase());
     }
 
     private startFakeTrades() {
         setInterval(() => {
-            const currentPrice = 45230.50; // Base price
+            const currentPrice = 45230.50;
             const isBuy = Math.random() > 0.5;
             const price = currentPrice + (Math.random() - 0.5) * 50;
-            const size = Math.random() * 2; // up to 2 BTC
+            const size = Math.random() * 2;
 
             const trade = {
                 price: price,
@@ -71,10 +139,10 @@ export class MarketService {
             };
 
             const current = this.recentTradesSubject.value;
-            const updated = [trade, ...current].slice(0, 50); // Keep last 50
+            const updated = [trade, ...current].slice(0, 50);
             this.recentTradesSubject.next(updated);
 
-        }, 800 + Math.random() * 1000); // Random interval 0.8s - 1.8s
+        }, 800 + Math.random() * 1000);
     }
 
     getPrices(): Observable<any> {
@@ -90,61 +158,53 @@ export class MarketService {
     }
 
     generateHistoricalData(interval: string = '1H'): any[] {
-        const data = [];
-        let now = new Date().getTime() / 1000;
-        let price = 45000;
 
-        let step = 3600; // 1H
-        let bars = 720;  // 30 days of hourly
+        return [];
+    }
+
+    getMarketHistory(symbolId: string, interval: string): Observable<any[]> {
+
+
+        let days = 1;
 
         switch (interval) {
             case '1M':
-                step = 60;
-                bars = 1440; // 24h
-                break;
             case '15M':
-                step = 15 * 60;
-                bars = 672; // One week
-                break;
             case '1H':
-                step = 3600;
-                bars = 720; // 30 days
+                days = 1;
                 break;
             case '4H':
-                step = 3600 * 4;
-                bars = 360; // 60 days
+                days = 7;
                 break;
             case '1D':
-                step = 86400;
-                bars = 365; // 1 year
+                days = 30;
                 break;
-            case '1W':
-                step = 86400 * 7;
-                bars = 104; // 2 years
-                break;
+            default:
+                days = 1;
         }
 
-        let time = now - (bars * step);
+        const url = `/api/market/history/${symbolId.toLowerCase()}?days=${days}`;
 
-        for (let i = 0; i < bars; i++) {
-            const volatility = 0.02 * (Math.sqrt(step / 3600)); // Adjust volatility by timeframe
-            const change = (Math.random() - 0.5) * price * volatility;
-            const open = price;
-            const close = price + change;
-            const high = Math.max(open, close) + Math.random() * price * (volatility * 0.5);
-            const low = Math.min(open, close) - Math.random() * price * (volatility * 0.5);
-
-            data.push({
-                time: time + (i * step),
-                open,
-                high,
-                low,
-                close,
-                value: close // for Line/Area chart
+        return new Observable(observer => {
+            this.http.get<any[]>(url).subscribe({
+                next: (data) => {
+                    observer.next(data || []);
+                    observer.complete();
+                },
+                error: (err) => {
+                    console.error('Failed to fetch history from proxy', err);
+                    observer.next([]);
+                    observer.complete();
+                }
             });
+        });
+    }
 
-            price = close;
-        }
-        return data;
+    getMarketCandles(symbolId: string, days: string): Observable<any[]> {
+
+
+
+
+        return this.getMarketHistory(symbolId, days);
     }
 }

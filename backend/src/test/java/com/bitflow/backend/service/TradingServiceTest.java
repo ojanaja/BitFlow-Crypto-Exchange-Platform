@@ -49,7 +49,7 @@ class TradingServiceTest {
 
         testWallet = new Wallet(testUser);
         testWallet.setId(1L);
-        testWallet.getAssets().add(new Asset("USD", 1000.0, testWallet)); // Initial balance
+        testWallet.getAssets().add(new Asset("USD", 1000.0, testWallet));
     }
 
     @Test
@@ -60,7 +60,6 @@ class TradingServiceTest {
         Wallet updatedWallet = tradingService.depositFunds(1L, 500.0);
 
         assertNotNull(updatedWallet);
-        // Find USD asset
         Asset usd = updatedWallet.getAssets().stream()
                 .filter(a -> a.getSymbol().equals("USD"))
                 .findFirst()
