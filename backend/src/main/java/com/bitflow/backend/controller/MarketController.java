@@ -8,9 +8,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/api/market")
-@CrossOrigin(origins = "*") 
+@CrossOrigin(origins = "*")
+@Tag(name = "Market", description = "Market data APIs")
 public class MarketController {
 
     private final CoinCapMarketDataService marketDataService;
@@ -21,6 +25,7 @@ public class MarketController {
     }
 
     @GetMapping("/history/{assetId}")
+    @Operation(summary = "Get Market History", description = "Get historical market data for an asset")
     public ResponseEntity<List<Map<String, Object>>> getMarketHistory(
             @PathVariable String assetId,
             @RequestParam(defaultValue = "1") int days) {

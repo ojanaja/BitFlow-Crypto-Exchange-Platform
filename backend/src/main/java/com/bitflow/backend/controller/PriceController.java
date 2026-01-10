@@ -12,8 +12,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/api/prices")
+@Tag(name = "Prices", description = "Real-time price APIs")
 public class PriceController {
 
     @Autowired
@@ -26,6 +30,7 @@ public class PriceController {
     private PriceAlertService priceAlertService;
 
     @GetMapping
+    @Operation(summary = "Get Current Prices", description = "Get the latest cryptocurrency prices")
     public ResponseEntity<Map<String, Double>> getCurrentPrices() {
         return ResponseEntity.ok(marketDataService.getLatestPrices());
     }

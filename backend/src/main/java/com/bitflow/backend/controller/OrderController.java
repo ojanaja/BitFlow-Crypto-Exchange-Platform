@@ -12,8 +12,12 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/api/orders")
+@Tag(name = "Orders", description = "Order management APIs")
 public class OrderController {
 
     @Autowired
@@ -23,6 +27,7 @@ public class OrderController {
     private OrderRepository orderRepository;
 
     @PostMapping
+    @Operation(summary = "Place Order", description = "Place a new buy or sell order")
     public ResponseEntity<?> placeOrder(@AuthenticationPrincipal UserDetailsImpl userDetails,
             @jakarta.validation.Valid @RequestBody OrderRequest orderRequest) {
         try {
@@ -44,6 +49,7 @@ public class OrderController {
     }
 
     @GetMapping
+    @Operation(summary = "Get Order History", description = "Get order history for the authenticated user")
     public ResponseEntity<List<Order>> getOrderHistory(@AuthenticationPrincipal UserDetailsImpl userDetails) {
         List<Order> orders = orderRepository.findByUserId(userDetails.getId());
         return ResponseEntity.ok(orders);

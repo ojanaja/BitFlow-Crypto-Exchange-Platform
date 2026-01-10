@@ -18,11 +18,14 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "Authentication", description = "Authentication management APIs")
 public class AuthController {
         @Autowired
         AuthenticationManager authenticationManager;
@@ -40,6 +43,7 @@ public class AuthController {
         SolanaAuthenticationProvider solanaAuthenticationProvider;
 
         @PostMapping("/login")
+        @Operation(summary = "Login user", description = "Authenticate user with username and password")
         public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
 
                 Authentication authentication = authenticationManager.authenticate(
@@ -62,6 +66,7 @@ public class AuthController {
         }
 
         @PostMapping("/register")
+        @Operation(summary = "Register user", description = "Register a new user with username, email and password")
         public ResponseEntity<?> registerUser(@RequestBody RegisterRequest signUpRequest) {
                 if (userRepository.existsByUsername(signUpRequest.getUsername())) {
                         return ResponseEntity
@@ -85,6 +90,7 @@ public class AuthController {
         }
 
         @PostMapping("/wallet-login")
+        @Operation(summary = "Wallet Login", description = "Authenticate user with Solana wallet signature")
         public ResponseEntity<?> authenticateWallet(@RequestBody AuthRequest authRequest) {
                 boolean isValid = solanaAuthenticationProvider.isValidSignature(
                                 authRequest.getWalletAddress(),
@@ -100,7 +106,7 @@ public class AuthController {
                         User user = new User(
                                         walletAddress,
                                         walletAddress + "@bitflow.app",
-                                        encoder.encode(UUID.randomUUID().toString())); 
+                                        encoder.encode(UUID.randomUUID().toString()));
                         userRepository.save(user);
                 }
 
