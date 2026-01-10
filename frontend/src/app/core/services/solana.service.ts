@@ -17,17 +17,24 @@ export class SolanaService {
     constructor(private http: HttpClient) {
         this.walletAddressSubject = new BehaviorSubject<string | null>(localStorage.getItem('walletAddress'));
         this.walletAddress$ = this.walletAddressSubject.asObservable();
-        this.connection = new Connection('https://api.devnet.solana.com'); 
+        this.connection = new Connection('https://api.devnet.solana.com');
     }
 
-    get isPhantomInstalled(): boolean {
-        return window?.solana?.isPhantom;
+    get isWalletInstalled(): boolean {
+        return !!window?.solana;
     }
 
     async connect(): Promise<string> {
-        if (!this.isPhantomInstalled) {
+        // Poll for wallet presence for up to 1 second (10 x 100ms) to handle injection timing
+        let attempts = 0;
+        while (!this.isWalletInstalled && attempts < 10) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
+        }
+
+        if (!this.isWalletInstalled) {
             window.open('https://phantom.app/', '_blank');
-            throw new Error('Phantom wallet not installed');
+            throw new Error('Solana wallet not installed');
         }
 
         try {
@@ -48,8 +55,19 @@ export class SolanaService {
 
         try {
             const encodedMessage = new TextEncoder().encode(message);
-            const signedMessage = await window.solana.signMessage(encodedMessage, 'utf8');
-            return bs58.default.encode(signedMessage.signature);
+            // Vandal returns { signature: Uint8Array } or similar structure depending on implementation
+            // Phantom returns { signature: Uint8Array }
+            const result = await window.solana.signMessage(encodedMessage, 'utf8');
+
+            // Handle different possible return shapes if necessary, but standard is Object with signature property
+            const signatureData = result.signature || result;
+
+            // Re-hydrate Uint8Array if it came back as a regular object (dictionary)
+            const signature = signatureData instanceof Uint8Array
+                ? signatureData
+                : new Uint8Array(Object.values(signatureData));
+
+            return bs58.default.encode(signature);
         } catch (err: any) {
             throw new Error(err.message || 'Signing failed');
         }
