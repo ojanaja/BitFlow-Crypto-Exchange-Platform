@@ -1,17 +1,90 @@
-<div class="login-container">
-  <div class="glass-card">
-    <div class="logo-area">
-      <h1 class="title">BITFLOW</h1>
-      <p class="subtitle">Next Gen Crypto Exchange</p>
+<!-- <div>
+  <div class="login-container">
+    <div class="glass-card">
+      <div class="logo-area">
+        <div class="flex gap-2">
+          <div
+            class="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-xl"
+          >
+            BF
+          </div>
+          <span class="ml-3 font-bold text-xl text-white hidden lg:block"
+            >BitFlow</span
+          >
+        </div>
+        <h1 class="title">BITFLOW</h1>
+        <p class="subtitle">Next Gen Crypto Exchange</p>
+      </div>
+
+      <div class="action-area">
+        <div *ngIf="error" class="error-message">{{ error }}</div>
+
+        <button
+          class="connect-btn"
+          (click)="connectWallet()"
+          [disabled]="loading"
+        >
+          <span *ngIf="!loading">Connect Wallet</span>
+          <span *ngIf="loading">Connecting...</span>
+        </button>
+      </div>
     </div>
-    
-    <div class="action-area">
-      <div *ngIf="error" class="error-message">{{ error }}</div>
-      
-      <button class="connect-btn" (click)="connectWallet()" [disabled]="loading">
-        <span *ngIf="!loading">Connect Wallet</span>
-        <span *ngIf="loading">Connecting...</span>
-      </button>
+  </div>
+</div> -->
+
+<div class="bg-[#020d09]">
+  <div
+    class="relative min-h-screen flex items-center justify-center overflow-hidden"
+  >
+    <div
+      class="absolute inset-0 z-0 bg-mesh opacity-100 pointer-events-none"
+    ></div>
+    <div
+      class="absolute inset-0 z-0 block pointer-events-none"
+      style="
+        background: radial-gradient(circle at center, #052e16 0%, #020d09 100%);
+      "
+    ></div>
+    <div class="relative z-10 w-full max-w-lg px-6">
+      <div class="glass-card p-8 md:p-10 rounded-2xl shadow-xl">
+        <div class="flex flex-col gap-6">
+          <div>
+            <h1 class="text-3xl font-bold text-white text-left">
+              Sign in to BitFlow
+            </h1>
+            <p class="text-gray-300 text-sm mt-2">
+              Connect your secure hardware or mobile wallet.
+            </p>
+          </div>
+          <button
+            class="connect-btn"
+            (click)="connectWallet()"
+            [disabled]="loading"
+            ngClass="flex items-center gap-2 justify-center"
+          >
+            <mat-icon class="material-icons-outlined"
+              >account_balance_wallet</mat-icon
+            >
+            <span *ngIf="!loading" class="text-sm md:text-base"
+              >Connect Vandal Wallet</span
+            >
+            <span *ngIf="loading">Connecting...</span>
+          </button>
+          <div class="relative flex items-center py-2 w-full">
+            <div class="flex-grow border-t border-white/20"></div>
+            <span
+              class="flex-shrink mx-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest"
+              >Authorized Access Only</span
+            >
+            <div class="flex-grow border-t border-white/20"></div>
+          </div>
+          <div
+            class="text-center text-slate-400 hover:text-emerald-400 cursor-pointer"
+          >
+            <p>Learn more about Vandal Wallet -></p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
