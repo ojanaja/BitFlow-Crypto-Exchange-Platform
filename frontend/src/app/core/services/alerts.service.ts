@@ -6,7 +6,7 @@ import * as SockJS from 'sockjs-client';
 import { AuthService } from './auth.service';
 
 const API_URL = '/api/alerts';
-const WS_URL = 'http://localhost:8080/ws-market';
+const WS_URL = '/ws-bitflow';
 
 @Injectable({
     providedIn: 'root'

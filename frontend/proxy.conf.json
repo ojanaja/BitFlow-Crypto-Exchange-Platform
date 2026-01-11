@@ -3,5 +3,11 @@
         "target": "http://backend:8080",
         "secure": false,
         "changeOrigin": true
+    },
+    "/ws-bitflow": {
+        "target": "http://backend:8080",
+        "secure": false,
+        "ws": true,
+        "changeOrigin": true
     }
 }
