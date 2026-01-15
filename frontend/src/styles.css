@@ -10,7 +10,7 @@ body {
 body {
   margin: 0;
   font-family: "Inter", Roboto, "Helvetica Neue", sans-serif;
-  /* @apply bg-slate-950 text-white antialiased; */
+  /* @apply bg-slate-50 text-slate-900 antialiased; */
 }
 
 /* Custom Scrollbar for Webkit */
@@ -19,11 +19,11 @@ body {
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  @apply bg-slate-900;
+  @apply bg-slate-100;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-700 rounded;
+  @apply bg-slate-300 rounded;
 }
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-slate-600;
+  @apply bg-slate-400;
 }

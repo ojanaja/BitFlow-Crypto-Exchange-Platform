@@ -10,19 +10,19 @@ import { MarketService } from '../../../../core/services/market.service';
     >
       <!-- Top Bar: Coin Info -->
       <div
-        class="bg-slate-900 border border-slate-800 p-3 rounded-lg flex items-center justify-between shrink-0"
+        class="bg-white border border-slate-200 p-3 rounded-lg flex items-center justify-between shrink-0 shadow-sm"
       >
         <div class="flex items-center gap-3">
-          <div class="text-xl font-bold text-white flex items-center gap-1">
+          <div class="text-xl font-bold text-slate-900 flex items-center gap-1">
             {{ displaySymbol }}
             <span class="text-slate-500 text-sm font-normal">/ USD</span>
           </div>
-          <div class="text-emerald-400 font-mono font-medium">
+          <div class="text-emerald-600 font-mono font-medium">
             {{ currentPrice | currency : 'USD' : 'symbol' : '1.2-2' }}
           </div>
         </div>
         <div class="flex gap-2">
-          <button class="text-slate-400 hover:text-white">
+          <button class="text-slate-400 hover:text-slate-900">
             <mat-icon class="material-icons-outlined">star_border</mat-icon>
           </button>
         </div>
@@ -36,24 +36,32 @@ import { MarketService } from '../../../../core/services/market.service';
         >
           <!-- Chart Container -->
           <div
-            class="flex-1 bg-slate-900 border border-slate-800 rounded-lg flex flex-col min-h-[300px]"
+            class="flex-1 bg-white border border-slate-200 rounded-lg flex flex-col min-h-[300px] shadow-sm"
           >
             <!-- Chart Toolbar -->
             <div
-              class="flex items-center justify-between p-2 border-b border-slate-800"
+              class="flex items-center justify-between p-2 border-b border-slate-200"
             >
-              <div class="flex bg-slate-800 rounded p-0.5">
+              <div
+                class="flex bg-slate-100 rounded p-0.5 border border-slate-200"
+              >
                 <button
                   (click)="chartMode = 'PRICE'"
-                  [class.bg-slate-700]="chartMode === 'PRICE'"
-                  class="px-3 py-1 text-xs text-white rounded transition-colors"
+                  [class.bg-white]="chartMode === 'PRICE'"
+                  [class.text-slate-900]="chartMode === 'PRICE'"
+                  [class.shadow-sm]="chartMode === 'PRICE'"
+                  [class.text-slate-500]="chartMode !== 'PRICE'"
+                  class="px-3 py-1 text-xs rounded transition-all"
                 >
                   Price
                 </button>
                 <button
                   (click)="chartMode = 'DEPTH'"
-                  [class.bg-slate-700]="chartMode === 'DEPTH'"
-                  class="px-3 py-1 text-xs text-white rounded transition-colors"
+                  [class.bg-white]="chartMode === 'DEPTH'"
+                  [class.text-slate-900]="chartMode === 'DEPTH'"
+                  [class.shadow-sm]="chartMode === 'DEPTH'"
+                  [class.text-slate-500]="chartMode !== 'DEPTH'"
+                  class="px-3 py-1 text-xs rounded transition-all"
                 >
                   Depth
                 </button>
@@ -77,10 +85,10 @@ import { MarketService } from '../../../../core/services/market.service';
 
           <!-- Bottom: Order History -->
           <div
-            class="h-1/3 min-h-[200px] bg-slate-900 border border-slate-800 rounded-lg overflow-hidden flex flex-col"
+            class="h-1/3 min-h-[200px] bg-white border border-slate-200 rounded-lg overflow-hidden flex flex-col shadow-sm"
           >
             <div
-              class="p-3 border-b border-slate-800 font-semibold text-slate-300 text-sm"
+              class="p-3 border-b border-slate-200 font-semibold text-slate-700 text-sm bg-slate-50"
             >
               Open Orders
             </div>
@@ -95,10 +103,10 @@ import { MarketService } from '../../../../core/services/market.service';
           class="col-span-12 md:col-span-6 lg:col-span-3 xl:col-span-2 flex flex-col gap-4 min-h-0"
         >
           <div
-            class="flex-1 bg-slate-900 border border-slate-800 rounded-lg overflow-hidden flex flex-col"
+            class="flex-1 bg-white border border-slate-200 rounded-lg overflow-hidden flex flex-col shadow-sm"
           >
             <div
-              class="p-2 border-b border-slate-800 font-semibold text-slate-300 text-sm"
+              class="p-2 border-b border-slate-200 font-semibold text-slate-700 text-sm bg-slate-50"
             >
               Order Book
             </div>
@@ -112,16 +120,18 @@ import { MarketService } from '../../../../core/services/market.service';
         <div
           class="col-span-12 md:col-span-6 lg:col-span-3 xl:col-span-3 flex flex-col gap-4 min-h-0"
         >
-          <div class="bg-slate-900 border border-slate-800 rounded-lg p-4">
+          <div
+            class="bg-white border border-slate-200 rounded-lg p-4 shadow-sm"
+          >
             <app-trade-form
               [symbol]="symbol"
               (orderPlaced)="refreshWallet()"
             ></app-trade-form>
           </div>
           <div
-            class="bg-slate-900 border border-slate-800 rounded-lg p-4 flex-1"
+            class="bg-white border border-slate-200 rounded-lg p-4 flex-1 shadow-sm"
           >
-            <h3 class="text-sm font-semibold text-slate-300 mb-3">Assets</h3>
+            <h3 class="text-sm font-semibold text-slate-700 mb-3">Assets</h3>
             <app-portfolio-summary #portfolio></app-portfolio-summary>
           </div>
         </div>

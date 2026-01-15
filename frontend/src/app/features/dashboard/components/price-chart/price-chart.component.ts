@@ -23,21 +23,22 @@ import { Subject, takeUntil } from 'rxjs';
   selector: 'app-price-chart',
   template: `
     <div
-      class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-lg h-[400px] flex flex-col relative"
+      class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm h-[400px] flex flex-col relative"
     >
       <!-- Header -->
       <div
-        class="flex items-center justify-end p-4 border-b border-slate-800 bg-slate-900/50 backdrop-blur z-10 absolute top-0 left-0 right-0 pointer-events-none"
+        class="flex items-center justify-end p-4 border-b border-slate-200 bg-white/90 backdrop-blur z-10 absolute top-0 left-0 right-0 pointer-events-none"
       >
         <!-- Controls (pointer-events-auto needed because parent is none) -->
         <div class="flex gap-2 pointer-events-auto">
           <!-- Timeframe Selector -->
-          <div class="flex bg-slate-950 p-1 rounded-lg border border-slate-800">
+          <div class="flex bg-slate-100 p-1 rounded-lg border border-slate-200">
             <button
               *ngFor="let tf of ['1M', '15M', '1H', '4H', '1D']"
               class="px-2 sm:px-3 py-1 text-[10px] sm:text-xs font-bold rounded transition-colors"
-              [class.bg-slate-800]="tf === activeTimeframe"
-              [class.text-white]="tf === activeTimeframe"
+              [class.bg-white]="tf === activeTimeframe"
+              [class.text-emerald-700]="tf === activeTimeframe"
+              [class.shadow-sm]="tf === activeTimeframe"
               [class.text-slate-500]="tf !== activeTimeframe"
               (click)="setTimeframe(tf)"
             >
@@ -46,12 +47,13 @@ import { Subject, takeUntil } from 'rxjs';
           </div>
 
           <!-- Type Selector -->
-          <div class="flex bg-slate-950 p-1 rounded-lg border border-slate-800">
+          <div class="flex bg-slate-100 p-1 rounded-lg border border-slate-200">
             <button
               *ngFor="let type of ['CANDLES', 'LINE', 'AREA']"
               class="px-2 sm:px-3 py-1 text-[10px] sm:text-xs font-bold rounded transition-colors"
-              [class.bg-slate-800]="type === activeType"
-              [class.text-white]="type === activeType"
+              [class.bg-white]="type === activeType"
+              [class.text-emerald-700]="type === activeType"
+              [class.shadow-sm]="type === activeType"
               [class.text-slate-500]="type !== activeType"
               (click)="setChartType(type)"
             >
@@ -117,21 +119,21 @@ export class PriceChartComponent
 
     const chartOptions = {
       layout: {
-        background: { color: '#0f172a' },
-        textColor: '#94a3b8',
+        background: { color: '#ffffff' },
+        textColor: '#334155',
       },
       grid: {
-        vertLines: { color: '#1e293b' },
-        horzLines: { color: '#1e293b' },
+        vertLines: { color: '#e2e8f0' },
+        horzLines: { color: '#e2e8f0' },
       },
       crosshair: {
         mode: 1,
       },
       rightPriceScale: {
-        borderColor: '#334155',
+        borderColor: '#cbd5e1',
       },
       timeScale: {
-        borderColor: '#334155',
+        borderColor: '#cbd5e1',
         timeVisible: true,
       },
     };

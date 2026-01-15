@@ -21,7 +21,7 @@ import { Subscription } from 'rxjs';
   selector: 'app-depth-chart',
   template: `
     <div
-      class="h-full w-full bg-slate-900 rounded-xl border border-slate-800 p-4 relative flex flex-col"
+      class="h-full w-full bg-white rounded-xl border border-slate-200 p-4 relative flex flex-col shadow-sm"
     >
       <div
         class="absolute top-4 left-4 z-10 flex items-center gap-2 pointer-events-none"
@@ -37,20 +37,20 @@ import { Subscription } from 'rxjs';
         *ngIf="legendVisible"
       >
         <div class="flex items-center gap-2">
-          <span class="text-emerald-500 font-bold">Bids</span>
-          <span class="text-slate-200 font-mono">{{
+          <span class="text-emerald-600 font-bold">Bids</span>
+          <span class="text-slate-800 font-mono">{{
             currentBidVol | number : '1.0-4'
           }}</span>
         </div>
         <div class="flex items-center gap-2">
           <span class="text-rose-500 font-bold">Asks</span>
-          <span class="text-slate-200 font-mono">{{
+          <span class="text-slate-800 font-mono">{{
             currentAskVol | number : '1.0-4'
           }}</span>
         </div>
         <div class="flex items-center gap-2 mt-1">
-          <span class="text-slate-400">Price</span>
-          <span class="text-slate-200 font-mono">{{
+          <span class="text-slate-500">Price</span>
+          <span class="text-slate-800 font-mono">{{
             currentPrice | number : '1.2-2'
           }}</span>
         </div>
@@ -95,15 +95,15 @@ export class DepthChartComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.chart = createChart(this.chartContainer.nativeElement, {
       layout: {
-        background: { type: ColorType.Solid, color: '#0f172a' },
-        textColor: '#94a3b8',
+        background: { type: ColorType.Solid, color: '#ffffff' },
+        textColor: '#334155',
       },
       grid: {
-        vertLines: { color: '#1e293b' },
-        horzLines: { color: '#1e293b' },
+        vertLines: { color: '#e2e8f0' },
+        horzLines: { color: '#e2e8f0' },
       },
       rightPriceScale: {
-        borderColor: '#334155',
+        borderColor: '#cbd5e1',
         scaleMargins: {
           top: 0.1,
           bottom: 0.1,
@@ -111,7 +111,7 @@ export class DepthChartComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       timeScale: {
         visible: false,
-        borderColor: '#334155',
+        borderColor: '#cbd5e1',
       },
       crosshair: {
         vertLine: {
