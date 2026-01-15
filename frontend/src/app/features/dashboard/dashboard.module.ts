@@ -1,7 +1,10 @@
-import { NgModule, CUSTOM_ELEMENTS_SCHEMA, NO_ERRORS_SCHEMA } from '@angular/core';
+import {
+  NgModule,
+  CUSTOM_ELEMENTS_SCHEMA,
+  NO_ERRORS_SCHEMA,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -14,7 +17,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { FormsModule } from '@angular/forms';
-import { NgChartsModule } from 'ng2-charts';
+
 import { DashboardRoutingModule } from './dashboard-routing.module';
 
 import { SidebarComponent } from './components/sidebar/sidebar.component';
@@ -39,47 +42,46 @@ import { CreateAlertDialogComponent } from './components/create-alert-dialog/cre
 import { DepthChartComponent } from './components/depth-chart/depth-chart.component';
 import { WithdrawDialogComponent } from './components/withdraw-dialog/withdraw-dialog.component';
 
-
 @NgModule({
-    declarations: [
-        DashboardHomeComponent,
-        PortfolioSummaryComponent,
-        MarketListComponent,
-        TradeFormComponent,
-        OrderHistoryComponent,
-        PriceChartComponent,
-        OrderBookComponent,
-        DepositDialogComponent,
-        AnalyticsComponent,
-        AlertsComponent,
-        CreateAlertDialogComponent,
-        DepthChartComponent,
-        SidebarComponent,
-        DashboardLayoutComponent,
-        OverviewPageComponent,
-        MarketPageComponent,
-        TradePageComponent,
-        AssetsPageComponent,
-        OrdersPageComponent,
-        WithdrawDialogComponent
-    ],
-    imports: [
-        CommonModule,
-        ReactiveFormsModule,
-        FormsModule,
-        NgChartsModule,
-        DashboardRoutingModule,
-        MatCardModule,
-        MatButtonModule,
-        MatInputModule,
-        MatFormFieldModule,
-        MatSelectModule,
-        MatSnackBarModule,
-        MatAutocompleteModule,
-        MatDialogModule,
-        MatIconModule,
-        MatTooltipModule
-    ],
-    schemas: [CUSTOM_ELEMENTS_SCHEMA, NO_ERRORS_SCHEMA]
+  declarations: [
+    DashboardHomeComponent,
+    PortfolioSummaryComponent,
+    MarketListComponent,
+    TradeFormComponent,
+    OrderHistoryComponent,
+    PriceChartComponent,
+    OrderBookComponent,
+    DepositDialogComponent,
+    AnalyticsComponent,
+    AlertsComponent,
+    CreateAlertDialogComponent,
+    DepthChartComponent,
+    SidebarComponent,
+    DashboardLayoutComponent,
+    OverviewPageComponent,
+    MarketPageComponent,
+    TradePageComponent,
+    AssetsPageComponent,
+    OrdersPageComponent,
+    WithdrawDialogComponent,
+  ],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    FormsModule,
+
+    DashboardRoutingModule,
+    MatCardModule,
+    MatButtonModule,
+    MatInputModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatSnackBarModule,
+    MatAutocompleteModule,
+    MatDialogModule,
+    MatIconModule,
+    MatTooltipModule,
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA, NO_ERRORS_SCHEMA],
 })
-export class DashboardModule { }
+export class DashboardModule {}

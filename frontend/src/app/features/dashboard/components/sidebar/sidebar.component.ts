@@ -60,7 +60,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
       <div class="border-t border-slate-800 p-4">
          <div class="flex items-center justify-center lg:justify-start">
              <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-slate-300">
-                <mat-icon class="text-sm">person</mat-icon>
+                <mat-icon class="material-icons-outlined">person</mat-icon>
              </div>
              <div class="ml-3 hidden lg:block overflow-hidden">
                  <p class="text-sm font-medium text-white truncate">User</p>
